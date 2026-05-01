@@ -1,0 +1,12 @@
+{
+  "eval_id": 2, "eval_name": "recommendation-engine-dart",
+  "prompt": "Crea recommendation_engine.dart con reglas de recomendación para running.",
+  "assertions": [
+    {"id":"a1","text":"Método evaluate() devuelve String? (null si todo está en rango)"},
+    {"id":"a2","text":"Solo una recomendación a la vez (usa ?? para prioridad)"},
+    {"id":"a3","text":"Los mensajes están en español e incluyen el valor numérico actual"},
+    {"id":"a4","text":"Cubre al menos 4 métricas: cadencia, simetría, contacto, pisada"},
+    {"id":"a5","text":"Espera un mínimo de pasos antes de emitir recomendaciones (evita falsos positivos al arrancar)"},
+    {"id":"a6","text":"Los umbrales son constantes configurables, no valores hardcoded en el if"}
+  ]
+}

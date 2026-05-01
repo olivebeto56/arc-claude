@@ -1,0 +1,6 @@
+{
+  "eval_id": 10,
+  "eval_name": "pipeline-completo-legacy",
+  "prompt": "Legacy eval from previous session",
+  "assertions": []
+}

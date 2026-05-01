@@ -1,0 +1,23 @@
+{
+  "skill_name": "flutter-ble",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Genera la pantalla de escaneo BLE completa (scan_screen.dart) para la app de running. Debe mostrar una lista de nodos disponibles filtrados por el UUID del servicio del wearable, mostrar la intensidad de señal (RSSI) de cada uno, y tener un botón para conectar los dos nodos seleccionados en paralelo. Usa flutter_blue_plus y Provider.",
+      "expected_output": "Archivo scan_screen.dart con StatefulWidget o Consumer<BleManager>, StreamBuilder sobre FlutterBluePlus.scanResults filtrado por UUID, ListTile con nombre del dispositivo y RSSI, selección de 2 nodos, botón 'Conectar' que llama Future.wait([...]) para conexión paralela, manejo de estados (escaneando / conectando / error).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Necesito el archivo sensor_parser.dart completo que decodifique los paquetes BLE de 14-16 bytes que manda el nodo XIAO+BNO085. Los paquetes vienen en little-endian: 2 bytes timestamp uint16, luego 4 int16 de cuaternión escalados x10000, luego 3 int16 de aceleración en mili-g. El parser debe devolver un objeto SensorData con los ángulos de Euler ya calculados.",
+      "expected_output": "Archivo sensor_parser.dart con clase SensorParser, método estático parse() que usa ByteData con Endian.little, escalado correcto (÷10000 para cuaternión, ×9.81/1000 para aceleración), cálculo de Euler (roll/pitch/yaw) desde cuaternión con atan2/asin, manejo de paquetes de 14 y 16 bytes, y clase SensorData con todos los campos.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea la pantalla principal de running (running_screen.dart) con dashboard en tiempo real. Debe mostrar: cadencia actual en spm, simetría L/R como barra bicolor, tiempo de contacto promedio, y una gráfica de cadencia de los últimos 30 segundos usando fl_chart. Cuando hay una recomendación nueva del SessionProvider, mostrarla en un banner destacado. Usa tema oscuro deportivo.",
+      "expected_output": "Archivo running_screen.dart con Consumer<SessionProvider>, métricas en Card widgets grandes, LineChart de cadencia con fl_chart (últimos 30s de datos), barra de simetría bicolor (verde si 45-55%, naranja si fuera de rango), banner o SnackBar para recomendaciones, tema oscuro con color primario cyan #00E5FF.",
+      "files": []
+    }
+  ]
+}

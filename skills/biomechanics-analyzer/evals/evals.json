@@ -1,0 +1,23 @@
+{
+  "skill_name": "biomechanics-analyzer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Genera los archivos event_detector.dart y metrics_calculator.dart completos para el motor de análisis de running. El detector debe encontrar impactos y despegues en la señal de aceleración del BNO085 usando histéresis. El calculador debe computar cadencia, simetría L/R, tiempo de contacto y ángulo de pisada usando ventana deslizante de 10 pasos.",
+      "expected_output": "event_detector.dart con GaitEventDetector que usa dos umbrales distintos (impactThreshold > takeoffThreshold), detección de impacto y takeoff por nodeId, callback onEvent. metrics_calculator.dart con MetricsCalculator que mantiene buffers separados por nodo, ventana de 10 pasos, métodos recordImpact() y recordContactTime(), método compute() que devuelve RunningMetrics.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crea el archivo recommendation_engine.dart con las reglas de recomendación para running. Debe cubrir: cadencia (< 160, > 200 spm), simetría L/R (fuera del rango 46-54%), tiempo de contacto (> 280 ms), ángulo de pisada (> 10°), y variabilidad de zancada (> 8%). Una sola recomendación a la vez, en español, específica y accionable.",
+      "expected_output": "recommendation_engine.dart con RecommendationEngine, método evaluate(RunningMetrics) que devuelve String? (null si todo está bien), reglas separadas por métrica con umbrales configurables, mensajes en español personalizados con el valor actual de la métrica, prioridad en el orden correcto (cadencia primero, variabilidad último).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea un script Python analyze_session.py para análisis offline de sesiones del wearable. Debe cargar un CSV con columnas timestamp_ms, node_id, accel_x, accel_y, accel_z, pitch; detectar impactos usando scipy find_peaks; calcular y graficar cadencia en el tiempo; y mostrar una gráfica con 3 paneles: magnitud de aceleración con picos marcados, pitch en los impactos, y cadencia rolling de 10 pasos.",
+      "expected_output": "analyze_session.py con funciones separadas (load_session, accel_magnitude, detect_impacts, cadence_timeseries, plot_session), parámetros threshold y window como argumentos configurables, gráfica matplotlib de 3 paneles con sharex=True, líneas de referencia en 160 y 180 spm, soporte para múltiples node_ids.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze *)",
+      "Bash(flutter doctor *)",
+      "Bash(xcode-select -p)",
+      "Bash(xcodebuild -version)",
+      "Bash(pod --version)",
+      "Bash(flutter devices *)",
+      "Bash(sed -i '' 's/com\\\\.arc\\\\.sportmonitor\\\\.arcApp\\\\.RunnerTests/com.arc.sportmonitor.RunnerTests/g' ios/Runner.xcodeproj/project.pbxproj)",
+      "Bash(sed -i '' 's/com\\\\.arc\\\\.sportmonitor\\\\.arcApp;/com.arc.sportmonitor;/g' ios/Runner.xcodeproj/project.pbxproj)",
+      "Bash(plutil -lint ios/Runner/Info.plist)",
+      "Bash(pod install *)",
+      "Bash(flutter test *)"
+    ]
+  }
+}

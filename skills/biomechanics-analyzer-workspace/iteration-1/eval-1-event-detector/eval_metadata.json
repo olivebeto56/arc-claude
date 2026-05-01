@@ -1,0 +1,12 @@
+{
+  "eval_id": 1, "eval_name": "event-detector-metrics-calculator",
+  "prompt": "Genera event_detector.dart y metrics_calculator.dart para el motor de análisis de running.",
+  "assertions": [
+    {"id":"a1","text":"GaitEventDetector usa dos umbrales distintos: impactThreshold (12 m/s²) y takeoffThreshold (2.5 m/s²) — histéresis"},
+    {"id":"a2","text":"Detecta eventos IMPACT y TAKEOFF con un callback que incluye nodeId y timestamp"},
+    {"id":"a3","text":"MetricsCalculator mantiene buffers separados para LEFT_ANKLE y RIGHT_ANKLE"},
+    {"id":"a4","text":"Ventana deslizante de 10 pasos (no toda la sesión)"},
+    {"id":"a5","text":"Computa cadencia, simetría L/R, tiempo de contacto y ángulo de pisada"},
+    {"id":"a6","text":"El cálculo de cadencia usa la fórmula 60000 / intervalo_promedio_ms"}
+  ]
+}

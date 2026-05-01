@@ -1,0 +1,23 @@
+{
+  "skill_name": "openscad-enclosure",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Agrega ranuras para correa elástica de 25mm a la carcasa del nodo wearable. Las ranuras deben ir en los extremos cortos (lados -X y +X de la base), centradas verticalmente. La correa tiene 2.5mm de grosor. Debe imprimirse sin soportes.",
+      "expected_output": "Módulo strap_slot() con parámetros strap_w=25, strap_t=2.5, tol_strap=0.5. Ranura añadida al difference() de base() en ambos extremos X, centrada en Y y Z. Verificación de que el material residual alrededor de la ranura es ≥1.2mm para no fragilizar la pared. Sin voladizos (la ranura es horizontal, imprime sin soporte).",
+      "files": ["carcasa_wearable.scad"]
+    },
+    {
+      "id": 2,
+      "prompt": "La tapa actual usa postes guía pero se puede separar accidentalmente durante el running. Implementa un sistema snap-fit en los 2 lados largos de la carcasa (laterales Y). El snap debe poderse abrir con los pulgares pero no abrirse solo con vibraciones. Usar PETG.",
+      "expected_output": "Módulo snap_hook() con snap_depth=0.6mm, snap_arm_l≥6mm, snap_arm_t=1.0mm, snap_return_ang≥60°, snap_entry_ang≤25°. Módulo snap_socket() con tol=0.3mm. Snaps añadidos en las paredes laterales (eje Y) de base() y sus sockets en lid(). Justificación del ángulo de retención elegido. Verificación que la deflexión del brazo ≤0.7×grosor (δ = 0.6mm < 0.7mm). Comentario de exportación actualizado.",
+      "files": ["carcasa_wearable.scad"]
+    },
+    {
+      "id": 3,
+      "prompt": "Necesito una versión de la carcasa para el prototipo de golf (Sprint futuro). El nodo de golf va en la muñeca. Cambia el diseño para: (1) grosor de pared 2.0mm en lugar de 1.6mm para mayor durabilidad, (2) sin abertura USB-C en el lado (el nodo de golf se carga por la base, no por el lateral), (3) abertura USB-C en el piso de la base, alineada con el conector del XIAO. Las dimensiones de los componentes son las mismas.",
+      "expected_output": "Nuevo archivo carcasa_golf.scad o parámetros de configuración al inicio de carcasa_wearable.scad con wall=2.0. La abertura USB-C lateral debe estar eliminada del difference() de base(). Nueva abertura USB-C en el piso: translate centrado bajo el XIAO, extruida en -Z (hacia afuera). Cálculo actualizado de outer_l, outer_w con wall=2.0. Instrucciones de exportación actualizadas. Dimensiones finales impresas con echo().",
+      "files": ["carcasa_wearable.scad"]
+    }
+  ]
+}

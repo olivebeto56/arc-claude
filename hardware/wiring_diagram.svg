@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1190 842" width="1190" height="842" font-family="'Helvetica Neue', Arial, sans-serif">
+  <!-- ==========================================================
+       AI Sport Monitor — wiring diagram (Sprint 1)
+       XIAO nRF52840 Sense  +  Adafruit BNO085 #4754  +  LiPo 400 mAh
+       Sized for A4 landscape printing (1190 x 842 px @ 144 dpi-ish)
+       ========================================================== -->
+
+  <!-- Background -->
+  <rect width="1190" height="842" fill="#0A0A0A"/>
+
+  <!-- ===== Title block ===== -->
+  <text x="40" y="50"  fill="#00E5FF" font-size="28" font-weight="700">AI Sport Monitor — Wiring Diagram</text>
+  <text x="40" y="78"  fill="#9aa0a6" font-size="14">XIAO nRF52840 Sense  ·  Adafruit BNO085 (#4754)  ·  LiPo 3.7 V 400 mAh</text>
+  <text x="40" y="98"  fill="#9aa0a6" font-size="13">Sprint 1 — running node  ·  I²C @ 400 kHz  ·  100 Hz sampling</text>
+
+  <!-- Legend -->
+  <g transform="translate(820,40)">
+    <rect x="0" y="0" width="330" height="68" rx="6" fill="#111827" stroke="#1f2937"/>
+    <text x="14" y="22" fill="#e5e7eb" font-size="13" font-weight="600">Cable color code</text>
+    <line x1="14"  y1="42" x2="50"  y2="42" stroke="#ef4444" stroke-width="3"/>
+    <text x="56" y="46" fill="#e5e7eb" font-size="11">3V3</text>
+    <line x1="100" y1="42" x2="136" y2="42" stroke="#111827" stroke-width="3"/>
+    <line x1="100" y1="42" x2="136" y2="42" stroke="#9ca3af" stroke-width="1"/>
+    <text x="142" y="46" fill="#e5e7eb" font-size="11">GND</text>
+    <line x1="190" y1="42" x2="226" y2="42" stroke="#3b82f6" stroke-width="3"/>
+    <text x="232" y="46" fill="#e5e7eb" font-size="11">SDA</text>
+    <line x1="270" y1="42" x2="306" y2="42" stroke="#eab308" stroke-width="3"/>
+    <text x="312" y="46" fill="#e5e7eb" font-size="11">SCL</text>
+    <line x1="14"  y1="60" x2="50"  y2="60" stroke="#dc2626" stroke-width="3"/>
+    <text x="56"  y="64" fill="#e5e7eb" font-size="11">BAT +</text>
+    <line x1="100" y1="60" x2="136" y2="60" stroke="#1f2937" stroke-width="3"/>
+    <text x="142" y="64" fill="#e5e7eb" font-size="11">BAT −</text>
+  </g>
+
+  <!-- =====================================================
+       XIAO nRF52840 Sense — left side, top-down view
+       ===================================================== -->
+  <g transform="translate(80,170)">
+    <!-- PCB body -->
+    <rect x="0" y="0" width="220" height="380" rx="12" fill="#1A1A2E" stroke="#00E5FF" stroke-width="2"/>
+    <text x="110" y="34" text-anchor="middle" fill="#00E5FF" font-size="16" font-weight="700">XIAO nRF52840 Sense</text>
+    <text x="110" y="54" text-anchor="middle" fill="#9aa0a6" font-size="11">top view · USB-C up</text>
+
+    <!-- USB-C -->
+    <rect x="80" y="-18" width="60" height="22" rx="3" fill="#374151" stroke="#9ca3af"/>
+    <text x="110" y="-3" text-anchor="middle" fill="#e5e7eb" font-size="10">USB-C</text>
+
+    <!-- Onboard JST 1.25mm battery port (back side, but shown for clarity) -->
+    <rect x="14" y="338" width="52" height="22" rx="2" fill="#7c2d12" stroke="#fb923c"/>
+    <text x="40" y="354" text-anchor="middle" fill="#fed7aa" font-size="10" font-weight="600">JST 1.25</text>
+    <text x="40" y="376" text-anchor="middle" fill="#fb923c" font-size="9">battery port</text>
+
+    <!-- LEFT pin row: D0-D6 + 5V/GND/3V3 -->
+    <!-- pin pad helper: a small circle on the edge -->
+    <!-- LEFT side pins (top to bottom): D0,D1,D2,D3,D4,D5,D6,D7,D8,D9,D10 — XIAO has 7 per side actually -->
+    <!-- The XIAO has 7 pins per side. Showing the relevant ones. -->
+
+    <!-- LEFT column (x=0) -->
+    <g font-size="11" fill="#e5e7eb">
+      <!-- pad markers -->
+      <circle cx="0" cy="80"  r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="0" cy="110" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="0" cy="140" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="0" cy="170" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="0" cy="200" r="6" fill="#3b82f6" stroke="#000"/>
+      <circle cx="0" cy="230" r="6" fill="#eab308" stroke="#000"/>
+      <circle cx="0" cy="260" r="6" fill="#d1d5db" stroke="#000"/>
+
+      <text x="14" y="84">D0</text>
+      <text x="14" y="114">D1</text>
+      <text x="14" y="144">D2</text>
+      <text x="14" y="174">D3</text>
+      <text x="14" y="204" font-weight="700" fill="#3b82f6">D4 · SDA</text>
+      <text x="14" y="234" font-weight="700" fill="#eab308">D5 · SCL</text>
+      <text x="14" y="264">D6</text>
+    </g>
+
+    <!-- RIGHT column (x=220) -->
+    <g font-size="11" fill="#e5e7eb" text-anchor="end">
+      <circle cx="220" cy="80"  r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="220" cy="110" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="220" cy="140" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="220" cy="170" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="220" cy="200" r="6" fill="#ef4444" stroke="#000"/>
+      <circle cx="220" cy="230" r="6" fill="#9ca3af" stroke="#000"/>
+      <circle cx="220" cy="260" r="6" fill="#dc2626" stroke="#000"/>
+
+      <text x="206" y="84">D10</text>
+      <text x="206" y="114">D9</text>
+      <text x="206" y="144">D8</text>
+      <text x="206" y="174">D7</text>
+      <text x="206" y="204" font-weight="700" fill="#ef4444">3V3</text>
+      <text x="206" y="234" font-weight="700" fill="#9ca3af">GND</text>
+      <text x="206" y="264" font-weight="700" fill="#dc2626">5V (Vbus)</text>
+    </g>
+
+    <!-- onboard tags -->
+    <text x="110" y="300" text-anchor="middle" fill="#6b7280" font-size="10">onboard LSM6DS3 — IGNORED</text>
+    <text x="110" y="316" text-anchor="middle" fill="#6b7280" font-size="10">we use external BNO085</text>
+  </g>
+
+  <!-- =====================================================
+       BNO085 breakout — right side
+       ===================================================== -->
+  <g transform="translate(680,170)">
+    <rect x="0" y="0" width="240" height="320" rx="12" fill="#1A1A2E" stroke="#00E5FF" stroke-width="2"/>
+    <text x="120" y="34" text-anchor="middle" fill="#00E5FF" font-size="16" font-weight="700">Adafruit BNO085 #4754</text>
+    <text x="120" y="54" text-anchor="middle" fill="#9aa0a6" font-size="11">9-DoF IMU · I²C @ 0x4A (SA0 = GND)</text>
+
+    <!-- IMU chip -->
+    <rect x="80" y="120" width="80" height="80" rx="4" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="165" text-anchor="middle" fill="#94a3b8" font-size="11">BNO085</text>
+    <text x="120" y="180" text-anchor="middle" fill="#475569" font-size="9">ARM CM0+</text>
+
+    <!-- LEFT pin row -->
+    <g font-size="11" fill="#e5e7eb">
+      <circle cx="0" cy="80"  r="6" fill="#ef4444" stroke="#000"/>
+      <circle cx="0" cy="110" r="6" fill="#9ca3af" stroke="#000"/>
+      <circle cx="0" cy="140" r="6" fill="#3b82f6" stroke="#000"/>
+      <circle cx="0" cy="170" r="6" fill="#eab308" stroke="#000"/>
+      <circle cx="0" cy="200" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="0" cy="230" r="6" fill="#9ca3af" stroke="#000"/>
+      <circle cx="0" cy="260" r="6" fill="#d1d5db" stroke="#000"/>
+
+      <text x="14" y="84"  font-weight="700" fill="#ef4444">VIN  (3V3)</text>
+      <text x="14" y="114" font-weight="700" fill="#9ca3af">GND</text>
+      <text x="14" y="144" font-weight="700" fill="#3b82f6">SDA</text>
+      <text x="14" y="174" font-weight="700" fill="#eab308">SCL</text>
+      <text x="14" y="204">3Vo (out, NC)</text>
+      <text x="14" y="234">SA0 → GND  (addr 0x4A)</text>
+      <text x="14" y="264">INT (NC for now)</text>
+    </g>
+
+    <!-- RIGHT pin row -->
+    <g font-size="11" fill="#e5e7eb" text-anchor="end">
+      <circle cx="240" cy="80"  r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="240" cy="110" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="240" cy="140" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="240" cy="170" r="6" fill="#d1d5db" stroke="#000"/>
+      <circle cx="240" cy="200" r="6" fill="#d1d5db" stroke="#000"/>
+
+      <text x="226" y="84">RST (NC)</text>
+      <text x="226" y="114">PS0 (NC)</text>
+      <text x="226" y="144">PS1 (NC)</text>
+      <text x="226" y="174">CLKSEL (NC)</text>
+      <text x="226" y="204">BOOT (NC)</text>
+    </g>
+
+    <text x="120" y="300" text-anchor="middle" fill="#6b7280" font-size="10">NC = no connection in Sprint 1</text>
+  </g>
+
+  <!-- =====================================================
+       WIRES between XIAO and BNO085
+       ===================================================== -->
+  <!--
+       XIAO right-side pin coordinates (transform 80,170):
+         3V3  → (300, 370)
+         GND  → (300, 400)
+       XIAO left-side pin coordinates:
+         D4 (SDA) → (80, 370)
+         D5 (SCL) → (80, 400)
+       BNO085 left pin coordinates (transform 680,170):
+         VIN → (680, 250)
+         GND → (680, 280)
+         SDA → (680, 310)
+         SCL → (680, 340)
+
+       But XIAO pin pads at (220+80, ..+170) = (300, ..)
+       3V3 at y=200 → 370
+       GND at y=230 → 400
+       D4 left at y=200 → 370 (left side)
+       D5 left at y=230 → 400 (left side)
+
+       Routes need to leave XIAO from the right side (3V3 + GND) and
+       wrap around for SDA/SCL since those are on the LEFT of the XIAO.
+  -->
+
+  <!-- 3V3 wire: from XIAO right (300,370) to BNO085 VIN (680,250) -->
+  <path d="M 300 370 L 360 370 L 360 250 L 680 250" fill="none" stroke="#ef4444" stroke-width="3"/>
+  <!-- GND wire: XIAO right (300,400) to BNO085 GND (680,280) -->
+  <path d="M 300 400 L 380 400 L 380 280 L 680 280" fill="none" stroke="#9ca3af" stroke-width="3"/>
+  <!-- SDA wire: XIAO LEFT D4 (80,370) wraps under board to BNO085 SDA (680,310) -->
+  <path d="M 80 370 L 60 370 L 60 600 L 660 600 L 660 310 L 680 310" fill="none" stroke="#3b82f6" stroke-width="3"/>
+  <!-- SCL wire: XIAO LEFT D5 (80,400) -->
+  <path d="M 80 400 L 50 400 L 50 620 L 640 620 L 640 340 L 680 340" fill="none" stroke="#eab308" stroke-width="3"/>
+
+  <!-- Wire labels -->
+  <text x="500" y="245" fill="#ef4444" font-size="11" font-weight="600">3V3</text>
+  <text x="500" y="275" fill="#9ca3af" font-size="11" font-weight="600">GND</text>
+  <text x="350" y="595" fill="#3b82f6" font-size="11" font-weight="600">SDA · D4 → SDA  (blue)</text>
+  <text x="350" y="635" fill="#eab308" font-size="11" font-weight="600">SCL · D5 → SCL  (yellow)</text>
+
+  <!-- =====================================================
+       Battery + JST detail panel — bottom-left
+       ===================================================== -->
+  <g transform="translate(80,610)">
+    <rect x="0" y="0" width="500" height="200" rx="10" fill="#111827" stroke="#1f2937"/>
+    <text x="20" y="28" fill="#00E5FF" font-size="15" font-weight="700">Battery — LiPo 3.7 V  400 mAh  ·  format 602030</text>
+
+    <!-- battery rectangle -->
+    <rect x="30" y="60" width="180" height="80" rx="6" fill="#0f172a" stroke="#475569"/>
+    <text x="120" y="100" text-anchor="middle" fill="#94a3b8" font-size="13">LiPo 3.7 V</text>
+    <text x="120" y="120" text-anchor="middle" fill="#475569" font-size="11">400 mAh · 60×20×3 mm</text>
+
+    <!-- wires from battery -->
+    <line x1="210" y1="80"  x2="280" y2="80"  stroke="#dc2626" stroke-width="3"/>
+    <line x1="210" y1="120" x2="280" y2="120" stroke="#1f2937" stroke-width="3"/>
+    <line x1="210" y1="120" x2="280" y2="120" stroke="#374151" stroke-width="3" stroke-dasharray="2,2"/>
+    <text x="220" y="74" fill="#dc2626" font-size="11" font-weight="700">+ rojo</text>
+    <text x="220" y="138" fill="#9ca3af" font-size="11" font-weight="700">− negro</text>
+
+    <!-- JST 1.25 connector -->
+    <rect x="280" y="62" width="80" height="76" rx="3" fill="#7c2d12" stroke="#fb923c"/>
+    <text x="320" y="86" text-anchor="middle" fill="#fed7aa" font-size="11" font-weight="700">JST 1.25</text>
+    <text x="320" y="103" text-anchor="middle" fill="#fed7aa" font-size="10">2-pin</text>
+
+    <!-- pin holes in connector -->
+    <circle cx="305" cy="120" r="4" fill="#dc2626" stroke="#000"/>
+    <circle cx="335" cy="120" r="4" fill="#9ca3af" stroke="#000"/>
+    <text x="305" y="156" text-anchor="middle" fill="#dc2626" font-size="10" font-weight="700">+</text>
+    <text x="335" y="156" text-anchor="middle" fill="#9ca3af" font-size="10" font-weight="700">−</text>
+
+    <!-- Arrow into XIAO -->
+    <path d="M 360 100 L 430 100" stroke="#fb923c" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="395" y="92" text-anchor="middle" fill="#fb923c" font-size="10">plugs into XIAO</text>
+
+    <!-- Warning -->
+    <rect x="20" y="160" width="460" height="30" rx="4" fill="#7f1d1d" stroke="#fca5a5"/>
+    <text x="30" y="180" fill="#fee2e2" font-size="11" font-weight="700">⚠ Polarity check before plugging — Adafruit / Seeed cells use opposite pinout on some batches.</text>
+  </g>
+
+  <!-- arrow marker -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#fb923c"/>
+    </marker>
+  </defs>
+
+  <!-- =====================================================
+       Notes panel — bottom-right
+       ===================================================== -->
+  <g transform="translate(620,610)">
+    <rect x="0" y="0" width="530" height="200" rx="10" fill="#111827" stroke="#1f2937"/>
+    <text x="20" y="28" fill="#00E5FF" font-size="15" font-weight="700">Build notes</text>
+
+    <g fill="#e5e7eb" font-size="12">
+      <text x="20" y="56">• I²C address: 0x4A — SA0 pin tied to GND on the BNO085 breakout.</text>
+      <text x="20" y="76">• I²C speed: Wire.setClock(400000) — 400 kHz fast mode required for 100 Hz.</text>
+      <text x="20" y="96">• Power: 3V3 from XIAO (LDO) → BNO085 VIN. Do NOT use 5V (Vbus).</text>
+      <text x="20" y="116">• BNO085 INT not connected — the driver polls via I²C in Sprint 1.</text>
+      <text x="20" y="136">• Battery: LiPo connects to XIAO's onboard JST. Charging happens through USB-C.</text>
+      <text x="20" y="156">• Onboard LSM6DS3 in the XIAO Sense is intentionally ignored — we need 9-DoF.</text>
+      <text x="20" y="178" fill="#9aa0a6">Doc rev. Sprint 1 · matches firmware/running_node/config.h UUIDs and pinout.</text>
+    </g>
+  </g>
+
+</svg>

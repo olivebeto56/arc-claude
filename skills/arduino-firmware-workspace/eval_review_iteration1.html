@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "arduino-firmware", "runs": [{"id": "eval-1-firmware-completo-with_skill", "prompt": "Genera el firmware base completo para el nodo del tobillo izquierdo en running. Necesito los archivos .ino, sensor.h, sensor.cpp, ble_service.h y ble_service.cpp. Debe usar el BNO085 a 100Hz, mandar cuaterniones por BLE con notificaciones, y leer el nivel de bater\u00eda.", "eval_id": 1, "outputs": [], "grading": null}, {"id": "eval-1-firmware-completo-without_skill", "prompt": "Genera el firmware base completo para el nodo del tobillo izquierdo en running. Necesito los archivos .ino, sensor.h, sensor.cpp, ble_service.h y ble_service.cpp. Debe usar el BNO085 a 100Hz, mandar cuaterniones por BLE con notificaciones, y leer el nivel de bater\u00eda.", "eval_id": 1, "outputs": [{"name": "ble_service.cpp", "type": "text", "content": "/*\n * ble_service.cpp\n * Implementacion del servicio BLE para el nodo del tobillo izquierdo.\n *\n * Notas de diseno:\n *  - Se usan UUIDs de 128 bits para el servicio IMU y sus caracteristicas.\n *  - El servicio de bateria usa los UUIDs estandar BLE SIG (0x180F / 0x2A19).\n *  - La MTU del XIAO nRF52840 con ArduinoBLE por defecto es 23 bytes\n *    (20 bytes de payload); los 20 bytes de cuaternion caben exactamente.\n *  - writeValue() con BLENotify solo envia si el central esta suscrito.\n */\n\n#include \"ble_service.h\"\n#include <ArduinoBLE.h>\n#include <string.h>  // memcpy\n\n// ---- UUIDs ---------------------------------------------------------------\n// Servicio IMU personalizado\n#define UUID_IMU_SERVICE   \"19B10000-E8F2-537E-4F6C-D104768A1214\"\n// Caracteristica: cuaternion (5 x float = 20 bytes)\n#define UUID_QUAT_CHAR     \"19B10001-E8F2-537E-4F6C-D104768A1214\"\n\n// Servicio de Bateria (BLE SIG)\n#define UUID_BAT_SERVICE   \"180F\"\n#define UUID_BAT_LEVEL     \"2A19\"\n\n// ---- Nombre BLE del dispositivo ------------------------------------------\n#define BLE_LOCAL_NAME     \"LeftAnkle-Node\"\n\n// ---- Objetos BLE ----------------------------------------------------------\nstatic BLEService imuService(UUID_IMU_SERVICE);\nstatic BLEService batteryService(UUID_BAT_SERVICE);\n\n// Cuaternion: notify, 20 bytes (no read para reducir latencia de ATT)\nstatic BLECharacteristic quatCharacteristic(\n    UUID_QUAT_CHAR,\n    BLENotify,\n    20,    // valor maximo en bytes\n    true   // valor fijo (fixed length)\n);\n\n// Bateria: read + notify, 1 byte\nstatic BLEUnsignedCharCharacteristic batteryLevelCharacteristic(\n    UUID_BAT_LEVEL,\n    BLERead | BLENotify\n);\n\n// ---- Estado interno -------------------------------------------------------\nstatic BLEDevice connectedCentral;\nstatic bool      deviceConnected = false;\n\n// ---- Callbacks de conexion -----------------------------------------------\nstatic void onConnect(BLEDevice central) {\n  deviceConnected = true;\n  connectedCentral = central;\n  Serial.print(\"[BLE] Conectado: \");\n  Serial.println(central.address());\n}\n\nstatic void onDisconnect(BLEDevice central) {\n  deviceConnected = false;\n  Serial.print(\"[BLE] Desconectado: \");\n  Serial.println(central.address());\n  // Reiniciar advertising automaticamente\n  BLE.advertise();\n  Serial.println(\"[BLE] Advertising reiniciado.\");\n}\n\n// ==========================================================================\nbool bleInit() {\n  if (!BLE.begin()) {\n    Serial.println(\"[BLE] BLE.begin() fallo.\");\n    return false;\n  }\n\n  BLE.setLocalName(BLE_LOCAL_NAME);\n  BLE.setDeviceName(BLE_LOCAL_NAME);\n\n  // --- Servicio IMU ---\n  imuService.addCharacteristic(quatCharacteristic);\n  BLE.addService(imuService);\n\n  // --- Servicio Bateria ---\n  batteryService.addCharacteristic(batteryLevelCharacteristic);\n  BLE.addService(batteryService);\n\n  // Valor inicial de la bateria\n  batteryLevelCharacteristic.writeValue((uint8_t)0);\n\n  // UUID del servicio principal en el advertising packet\n  BLE.setAdvertisedService(imuService);\n\n  // Registrar callbacks\n  BLE.setEventHandler(BLEConnected,    onConnect);\n  BLE.setEventHandler(BLEDisconnected, onDisconnect);\n\n  // Iniciar advertising\n  BLE.advertise();\n\n  Serial.print(\"[BLE] Advertising como \\\"\");\n  Serial.print(BLE_LOCAL_NAME);\n  Serial.println(\"\\\"\");\n\n  return true;\n}\n\n// ==========================================================================\nbool bleIsConnected() {\n  return deviceConnected;\n}\n\n// ==========================================================================\nvoid bleSendQuaternion(const QuaternionData &quat) {\n  if (!deviceConnected) return;\n\n  // Serializar 5 floats en little-endian (IEEE 754, 4 bytes cada uno = 20 B)\n  uint8_t buf[20];\n  float values[5] = {\n    quat.i,\n    quat.j,\n    quat.k,\n    quat.real,\n    quat.accuracy\n  };\n  memcpy(buf, values, 20);\n\n  quatCharacteristic.writeValue(buf, 20);\n}\n\n// ==========================================================================\nvoid bleSendBattery(uint8_t percent) {\n  batteryLevelCharacteristic.writeValue(percent);\n  Serial.print(\"[BLE] Battery notified: \");\n  Serial.print(percent);\n  Serial.println(\"%\");\n}\n"}, {"name": "ble_service.h", "type": "text", "content": "/*\n * ble_service.h\n * Servicio BLE para el nodo del tobillo izquierdo.\n *\n * UUIDs personalizados (128 bits) \u2014 cambia el UUID base si convive con\n * otros nodos en la misma aplicacion para evitar colisiones de UUID corto.\n *\n * Servicio IMU:\n *   UUID: 19B10000-E8F2-537E-4F6C-D104768A1214\n *   Caracteristica QUATERNION  (notify, 20 bytes):\n *     UUID: 19B10001-E8F2-537E-4F6C-D104768A1214\n *     Formato: i(float) j(float) k(float) real(float) accuracy(float) \u2014 little-endian\n *\n * Servicio Bateria (BLE SIG 0x180F):\n *   Caracteristica BATTERY_LEVEL (notify+read, 1 byte):\n *     UUID: 0x2A19\n *     Formato: uint8 0-100\n */\n\n#pragma once\n\n#include <Arduino.h>\n#include \"sensor.h\"\n\n// ---------- API publica ----------\n\n/**\n * bleInit()\n * Configura el stack BLE, registra los servicios y empieza a hacer advertising.\n * @return true si todo fue bien.\n */\nbool bleInit();\n\n/**\n * bleIsConnected()\n * @return true si hay un central conectado actualmente.\n */\nbool bleIsConnected();\n\n/**\n * bleSendQuaternion(quat)\n * Serializa los cuaterniones a 20 bytes (5 floats little-endian) y los\n * notifica al central si esta suscrito.\n */\nvoid bleSendQuaternion(const QuaternionData &quat);\n\n/**\n * bleSendBattery(percent)\n * Actualiza y notifica el nivel de bateria (0-100).\n */\nvoid bleSendBattery(uint8_t percent);\n"}, {"name": "left_ankle_node.ino", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,LyoKICogbGVmdF9hbmtsZV9ub2RlLmlubwogKiBGaXJtd2FyZSBiYXNlIHBhcmEgZWwgbm9kbyBkZWwgdG9iaWxsbyBpenF1aWVyZG8g4oCUIFJ1bm5pbmcKICogSGFyZHdhcmUgOiBTZWVlZCBYSUFPIG5SRjUyODQwIFNlbnNlICsgQWRhZnJ1aXQgQk5PMDg1IChCTk8wOHgpCiAqIExpYnJhcmllczogQXJkdWlub0JMRSwgQWRhZnJ1aXQgQk5PMDh4CiAqCiAqIEZ1bmNpb25hbGlkYWQ6CiAqICAtIEluaWNpYWxpemEgZWwgQk5PMDg1IGEgMTAwIEh6IGVuIG1vZG8gY3VhdGVybmlvbiBkZSByb3RhY2lvbgogKiAgLSBFeHBvbmUgdW4gc2VydmljaW8gQkxFIGNvbiBjYXJhY3RlcmlzdGljYSBkZSBjdWF0ZXJuaW9uIChub3RpZmljYWNpb25lcykKICogIC0gTGVlIGVsIG5pdmVsIGRlIGJhdGVyaWEgY2FkYSAzMCBzIHkgbG8gbm90aWZpY2EgcG9yIEJMRQogKiAgLSBMRUQgZGUgZXN0YWRvOiBwYXJwYWRlbyBsZW50byA9IEJMRSBzaW4gY29uZWN0YXIgLyBzb2xpZG8gPSBjb25lY3RhZG8KICovCgojaW5jbHVkZSA8QXJkdWlub0JMRS5oPgojaW5jbHVkZSAic2Vuc29yLmgiCiNpbmNsdWRlICJibGVfc2VydmljZS5oIgoKLy8gLS0tLS0tLS0tLSBQaW5lcyAtLS0tLS0tLS0tCiNkZWZpbmUgUElOX0JBVFRFUllfQURDICAgQTAgICAvLyBEaXZpc29yIHJlc2lzdGl2byBoYWNpYSBsYSBMaVBvCiNkZWZpbmUgUElOX0xFRF9TVEFUVVMgICAgTEVEX0JVSUxUSU4KCi8vIC0tLS0tLS0tLS0gSW50ZXJ2YWxvcyAtLS0tLS0tLS0tCiNkZWZpbmUgSU1VX0lOVEVSVkFMX01TICAgICAgIDEwICAgIC8vIDEwMCBIegojZGVmaW5lIEJBVFRFUllfSU5URVJWQUxfTVMgICAzMDAwMCAvLyAzMCBzCiNkZWZpbmUgTEVEX0JMSU5LX0lOVEVSVkFMX01TIDUwMAoKLy8gLS0tLS0tLS0tLSBWYXJpYWJsZXMgZGUgdGllbXBvIC0tLS0tLS0tLS0Kc3RhdGljIHVuc2lnbmVkIGxvbmcgbGFzdEltdVRpbWUgICAgID0gMDsKc3RhdGljIHVuc2lnbmVkIGxvbmcgbGFzdEJhdHRlcnlUaW1lID0gMDsKc3RhdGljIHVuc2lnbmVkIGxvbmcgbGFzdExlZFRpbWUgICAgID0gMDsKc3RhdGljIGJvb2wgICAgICAgICAgbGVkU3RhdGUgICAgICAgID0gZmFsc2U7CgovLyAtLS0tLS0tLS0tIFByb3RvdGlwb3MgLS0tLS0tLS0tLQp1aW50OF90ICByZWFkQmF0dGVyeVBlcmNlbnQoKTsKdm9pZCAgICAgdXBkYXRlU3RhdHVzTGVkKGJvb2wgY29ubmVjdGVkKTsKCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQp2b2lkIHNldHVwKCkgewogIFNlcmlhbC5iZWdpbigxMTUyMDApOwogIC8vIE5vIGJsb3F1ZWFtb3MgZW4gU2VyaWFsIHBhcmEgcHJvZHVjY2lvbjsgZGVzY29tZW50YXIgcGFyYSBkZWJ1ZzoKICAvLyB3aGlsZSAoIVNlcmlhbCkgZGVsYXkoMTApOwoKICBwaW5Nb2RlKFBJTl9MRURfU1RBVFVTLCBPVVRQVVQpOwogIGRpZ2l0YWxXcml0ZShQSU5fTEVEX1NUQVRVUywgTE9XKTsKCiAgLy8gLS0tIFNlbnNvciAtLS0KICBpZiAoIXNlbnNvckluaXQoKSkgewogICAgU2VyaWFsLnByaW50bG4oIltCT09UXSBFUlJPUjogQk5PMDg1IG5vIGVuY29udHJhZG8uIEhhbHQuIik7CiAgICB3aGlsZSAodHJ1ZSkgewogICAgICBkaWdpdGFsV3JpdGUoUElOX0xFRF9TVEFUVVMsICFkaWdpdGFsUmVhZChQSU5fTEVEX1NUQVRVUykpOwogICAgICBkZWxheSgxMDApOwogICAgfQogIH0KICBTZXJpYWwucHJpbnRsbigiW0JPT1RdIEJOTzA4NSBPSyBAIDEwMCBIeiIpOwoKICAvLyAtLS0gQkxFIC0tLQogIGlmICghYmxlSW5pdCgpKSB7CiAgICBTZXJpYWwucHJpbnRsbigiW0JPT1RdIEVSUk9SOiBCTEUgbm8gaW5pY2lhbGl6YWRvLiBIYWx0LiIpOwogICAgd2hpbGUgKHRydWUpIHsKICAgICAgZGlnaXRhbFdyaXRlKFBJTl9MRURfU1RBVFVTLCAhZGlnaXRhbFJlYWQoUElOX0xFRF9TVEFUVVMpKTsKICAgICAgZGVsYXkoMjAwKTsKICAgIH0KICB9CiAgU2VyaWFsLnByaW50bG4oIltCT09UXSBCTEUgT0suIEFkdmVydGlzaW5nLi4uIik7CgogIGxhc3RJbXVUaW1lICAgICA9IG1pbGxpcygpOwogIGxhc3RCYXR0ZXJ5VGltZSA9IG1pbGxpcygpOwogIGxhc3RMZWRUaW1lICAgICA9IG1pbGxpcygpOwp9CgovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0Kdm9pZCBsb29wKCkgewogIHVuc2lnbmVkIGxvbmcgbm93ID0gbWlsbGlzKCk7CgogIC8vIC0tLSBQb2xsaW5nIEJMRSAtLS0KICBCTEUucG9sbCgpOwogIGJvb2wgY29ubmVjdGVkID0gYmxlSXNDb25uZWN0ZWQoKTsKCiAgLy8gLS0tIExFRCBkZSBlc3RhZG8gLS0tCiAgaWYgKG5vdyAtIGxhc3RMZWRUaW1lID49IExFRF9CTElOS19JTlRFUlZBTF9NUykgewogICAgbGFzdExlZFRpbWUgPSBub3c7CiAgICBpZiAoY29ubmVjdGVkKSB7CiAgICAgIGRpZ2l0YWxXcml0ZShQSU5fTEVEX1NUQVRVUywgSElHSCk7CiAgICB9IGVsc2UgewogICAgICBsZWRTdGF0ZSA9ICFsZWRTdGF0ZTsKICAgICAgZGlnaXRhbFdyaXRlKFBJTl9MRURfU1RBVFVTLCBsZWRTdGF0ZSk7CiAgICB9CiAgfQoKICAvLyAtLS0gTGVjdHVyYSBJTVUgeSBlbnZpbyBCTEUgQCAxMDAgSHogLS0tCiAgaWYgKG5vdyAtIGxhc3RJbXVUaW1lID49IElNVV9JTlRFUlZBTF9NUykgewogICAgbGFzdEltdVRpbWUgPSBub3c7CgogICAgUXVhdGVybmlvbkRhdGEgcXVhdDsKICAgIGlmIChzZW5zb3JSZWFkKHF1YXQpKSB7CiAgICAgIGJsZVNlbmRRdWF0ZXJuaW9uKHF1YXQpOwogICAgfQogIH0KCiAgLy8gLS0tIEJhdGVyaWEgY2FkYSAzMCBzIC0tLQogIGlmIChub3cgLSBsYXN0QmF0dGVyeVRpbWUgPj0gQkFUVEVSWV9JTlRFUlZBTF9NUykgewogICAgbGFzdEJhdHRlcnlUaW1lID0gbm93OwogICAgdWludDhfdCBwY3QgPSByZWFkQmF0dGVyeVBlcmNlbnQoKTsKICAgIGJsZVNlbmRCYXR0ZXJ5KHBjdCk7CiAgICBTZXJpYWwucHJpbnQoIltCQVRdICIpOwogICAgU2VyaWFsLnByaW50KHBjdCk7CiAgICBTZXJpYWwucHJpbnRsbigiJSIpOwogIH0KfQoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIHJlYWRCYXR0ZXJ5UGVyY2VudCgpCi8vICAgTGVlIGVsIEFEQyBjb25lY3RhZG8gYSB1biBkaXZpc29yIHJlc2lzdGl2byAyOjEgc29icmUgbGEgTGlQbyAoNC4yIFYgbWF4KS4KLy8gICBFbCBYSUFPIG5SRjUyODQwIHRpZW5lIHJlZmVyZW5jaWEgaW50ZXJuYSBkZSAzLjYgViB5IEFEQyBkZSAxMiBiaXRzLgovLyAgIEFqdXN0YSBWRElWX1JBVElPIHkgVlJFRiBzaSB0dSBjaXJjdWl0byBlcyBkaXN0aW50by4KLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CnVpbnQ4X3QgcmVhZEJhdHRlcnlQZXJjZW50KCkgewogIGNvbnN0IGZsb2F0IFZSRUYgICAgICAgPSAzLjZmOyAgIC8vIFZvbHRhamUgZGUgcmVmZXJlbmNpYSBBREMgKFYpCiAgY29uc3QgZmxvYXQgVkRJVl9SQVRJTyA9IDIuMGY7ICAgLy8gRGl2aXNvciByZXNpc3Rpdm8gKFIxPVIyID0+IHgyKQogIGNvbnN0IGZsb2F0IFZCQVRfTUFYICAgPSA0LjJmOyAgIC8vIExpUG8gY2FyZ2FkYSBhbCAxMDAlCiAgY29uc3QgZmxvYXQgVkJBVF9NSU4gICA9IDMuMGY7ICAgLy8gTGlQbyBkZXNjYXJnYWRhIGFsIDAlCiAgY29uc3QgaW50ICAgQURDX1JFUyAgICA9IDQwOTU7ICAgLy8gMTIgYml0cwoKICBhbmFsb2dSZWFkUmVzb2x1dGlvbigxMik7CiAgaW50ICAgcmF3ICA9IGFuYWxvZ1JlYWQoUElOX0JBVFRFUllfQURDKTsKICBmbG9hdCB2QWRjID0gKGZsb2F0KXJhdyAvIEFEQ19SRVMgKiBWUkVGOwogIGZsb2F0IHZCYXQgPSB2QWRjICogVkRJVl9SQVRJTzsKCiAgLy8gTWFwZWFyIGEgMC0xMDAlCiAgZmxvYXQgcGN0ID0gKHZCYXQgLSBWQkFUX01JTikgLyAoVkJBVF9NQVggLSBWQkFUX01JTikgKiAxMDAuMGY7CiAgaWYgKHBjdCA8IDAuMGYpIHBjdCA9IDAuMGY7CiAgaWYgKHBjdCA+IDEwMC4wZikgcGN0ID0gMTAwLjBmOwoKICByZXR1cm4gKHVpbnQ4X3QpcGN0Owp9Cgp2b2lkIHVwZGF0ZVN0YXR1c0xlZChib29sIGNvbm5lY3RlZCkgewogIC8vIExvZ2ljYSBtb3ZpZGEgYWwgbG9vcCBwcmluY2lwYWwgcGFyYSBubyBibG9xdWVhci4KICAodm9pZCljb25uZWN0ZWQ7Cn0K"}, {"name": "sensor.cpp", "type": "text", "content": "/*\n * sensor.cpp\n * Implementacion de la abstraccion del BNO085.\n * Usa la libreria Adafruit BNO08x sobre I2C.\n *\n * Conexion por defecto (XIAO nRF52840 Sense):\n *   SDA -> D4 (Pin 4)\n *   SCL -> D5 (Pin 5)\n *   VIN -> 3.3 V\n *   GND -> GND\n *   PS1 -> GND  (selecciona I2C, direccion 0x4A)\n *   PS0 -> GND\n *\n * Direccion I2C: 0x4A (PS1=0, PS0=0) o 0x4B (PS1=1, PS0=0)\n */\n\n#include \"sensor.h\"\n#include <Adafruit_BNO08x.h>\n#include <Wire.h>\n\n// ---------- Configuracion ----------\n#define BNO085_I2C_ADDR   0x4A\n#define BNO085_REPORT_US  10000   // 10 000 us = 100 Hz\n#define BNO085_RESET_PIN  -1      // Sin pin de reset hardware (-1 = no usado)\n\n// ---------- Objeto del sensor ----------\nstatic Adafruit_BNO08x bno(BNO085_RESET_PIN);\nstatic sh2_SensorValue_t sensorValue;\n\n// ============================================================\nbool sensorInit() {\n  Wire.begin();\n  Wire.setClock(400000); // I2C Fast Mode 400 kHz\n\n  if (!bno.begin_I2C(BNO085_I2C_ADDR)) {\n    Serial.println(\"[SENSOR] begin_I2C fallo.\");\n    return false;\n  }\n\n  // Habilitar informe: cuaterniones de rotacion (Rotation Vector)\n  // SH2_ROTATION_VECTOR incluye precision de referencia magnetica.\n  // Si no necesitas fusion con magnetometro usa SH2_GAME_ROTATION_VECTOR.\n  if (!bno.enableReport(SH2_ROTATION_VECTOR, BNO085_REPORT_US)) {\n    Serial.println(\"[SENSOR] enableReport(ROTATION_VECTOR) fallo.\");\n    return false;\n  }\n\n  Serial.println(\"[SENSOR] BNO085 inicializado OK @ 100 Hz (ROTATION_VECTOR).\");\n  return true;\n}\n\n// ============================================================\nbool sensorRead(QuaternionData &out) {\n  // getSensorEvent() es no bloqueante: devuelve false si no hay dato nuevo.\n  if (!bno.getSensorEvent(&sensorValue)) {\n    return false;\n  }\n\n  // Verificar que el tipo de informe es el que esperamos.\n  if (sensorValue.sensorId != SH2_ROTATION_VECTOR) {\n    return false;\n  }\n\n  out.i         = sensorValue.un.rotationVector.i;\n  out.j         = sensorValue.un.rotationVector.j;\n  out.k         = sensorValue.un.rotationVector.k;\n  out.real      = sensorValue.un.rotationVector.real;\n  out.accuracy  = sensorValue.un.rotationVector.accuracy;\n  out.timestamp = millis();\n\n  return true;\n}\n"}, {"name": "sensor.h", "type": "text", "content": "/*\n * sensor.h\n * Abstraccion del BNO085 para el nodo del tobillo izquierdo.\n * Expone un tipo de datos QuaternionData y dos funciones publicas.\n */\n\n#pragma once\n\n#include <Arduino.h>\n\n// ---------- Tipo de dato de salida ----------\nstruct QuaternionData {\n  float    i;          // Componente i (x)\n  float    j;          // Componente j (y)\n  float    k;          // Componente k (z)\n  float    real;       // Componente real (w)\n  float    accuracy;   // Estimacion de error (rad) devuelta por el BNO085\n  uint32_t timestamp;  // millis() en el momento de la lectura\n};\n\n// ---------- API publica ----------\n\n/**\n * sensorInit()\n * Inicializa el bus I2C y el BNO085.\n * Configura el informe de cuaterniones de rotacion a 100 Hz (10 000 us).\n * @return true si el sensor respondio correctamente, false en caso contrario.\n */\nbool sensorInit();\n\n/**\n * sensorRead(out)\n * Consulta si hay un nuevo dato disponible en el BNO085 y lo copia en 'out'.\n * No bloquea: si no hay dato nuevo devuelve false inmediatamente.\n * @param out Referencia donde se escribiran los cuaterniones.\n * @return true si se leyo un dato valido, false si no habia dato nuevo.\n */\nbool sensorRead(QuaternionData &out);\n"}], "grading": null}, {"id": "eval-2-diagnostico-i2c-with_skill", "prompt": "El BNO085 no me responde por I2C. Cuando corro el sketch me sale 'BNO085 not found at 0x4A' en el serial monitor. \u00bfQu\u00e9 puede estar pasando y c\u00f3mo lo diagnostico? Dame c\u00f3digo de diagn\u00f3stico.", "eval_id": 2, "outputs": [{"name": "bno085_i2c_diagnostic.ino", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,LyoqCiAqIGJubzA4NV9pMmNfZGlhZ25vc3RpYy5pbm8KICog4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAqIERpYWdub3N0aWMgc2tldGNoIGZvciBYSUFPIG5SRjUyODQwIFNlbnNlICsgQk5PMDg1IHZpYSBJMkMuCiAqIFJ1biB0aGlzIEJFRk9SRSB5b3VyIG1haW4gZmlybXdhcmUgdG8gaXNvbGF0ZSB0aGUgcm9vdCBjYXVzZSBvZgogKiAiQk5PMDg1IG5vdCBmb3VuZCBhdCAweDRBIi4KICoKICogSGFyZHdhcmU6IFNlZWVkIFhJQU8gblJGNTI4NDAgU2Vuc2UKICogICAgICAgICAgIEFkYWZydWl0IEJOTzA4NSBicmVha291dCAjNDc1NAogKiAgICAgICAgICAgSTJDIHdpcmluZzogU0RBIOKGkiBENCAoUDAuMDYpLCBTQ0wg4oaSIEQ1IChQMC4wNykKICoKICogUmVxdWlyZWQgbGlicmFyaWVzOgogKiAgIC0gQWRhZnJ1aXQgQk5PMDh4ICAoTGlicmFyeSBNYW5hZ2VyKQogKiAgIC0gQWRhZnJ1aXQgVW5pZmllZCBTZW5zb3IgIChkZXBlbmRlbmN5LCBMaWJyYXJ5IE1hbmFnZXIpCiAqCiAqIEJvYXJkOiBTZWVlZCBYSUFPIEJMRSBTZW5zZSAtIG5SRjUyODQwCiAqIFVSTDogICBodHRwczovL2ZpbGVzLnNlZWVkc3R1ZGlvLmNvbS9hcmR1aW5vL3BhY2thZ2Vfc2VlZWR1aW5vX2JvYXJkc19pbmRleC5qc29uCiAqLwoKI2luY2x1ZGUgPFdpcmUuaD4KI2luY2x1ZGUgPEFkYWZydWl0X0JOTzA4eC5oPgoKLy8g4pSA4pSA4pSAIENPTkZJR1VSQVRJT04g4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACi8vIEkyQyBhZGRyZXNzZXMgdG8gc2NhbiAoQk5PMDg1IGlzIDB4NEEgYnkgZGVmYXVsdCwgMHg0QiB3aGVuIFNBMCB0aWVkIEhJR0gpCiNkZWZpbmUgQk5PMDg1X0FERFJfREVGQVVMVCAgMHg0QQojZGVmaW5lIEJOTzA4NV9BRERSX0FMVCAgICAgIDB4NEIKCi8vIEkyQyBjbG9jayBzcGVlZHMgdG8gdGVzdAojZGVmaW5lIEkyQ19TVEFOREFSRF9IWiAgIDEwMDAwMFVMICAgLy8gMTAwIGtIeiDigJQgc3RhbmRhcmQgbW9kZQojZGVmaW5lIEkyQ19GQVNUX0haICAgICAgIDQwMDAwMFVMICAgLy8gNDAwIGtIeiDigJQgZmFzdCBtb2RlIChuZWVkZWQgZm9yIDEwMCBIeispCgovLyBIb3cgbG9uZyB0byB3YWl0IGFmdGVyIFdpcmUuYmVnaW4oKSBiZWZvcmUgc2Nhbm5pbmcgKG1zKQojZGVmaW5lIFdJUkVfU0VUVExFX01TICAgICAgMjAwCgovLyBTdGFydHVwIGRlbGF5IHRvIGxldCB0aGUgQk5PMDg1IGJvb3QgaXRzIGludGVybmFsIFNILTIgcHJvY2Vzc29yIChtcykKI2RlZmluZSBCTk8wODVfQk9PVF9NUyAgICAgIDUwMAovLyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKCkFkYWZydWl0X0JOTzA4eCBibm8wODUoLTEpOyAgLy8gLTEgPSBubyBoYXJkd2FyZSByZXNldCBwaW4gdXNlZAoKLy8g4pSA4pSA4pSAIEhFTFBFUlMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACgovKioKICogU2NhbiB0aGUgZW50aXJlIEkyQyBidXMgKDB4MDjigJMweDc3KSBhbmQgcHJpbnQgZXZlcnkgYWRkcmVzcyB0aGF0IEFDS3MuCiAqIFJldHVybnMgdGhlIGNvdW50IG9mIGRldmljZXMgZm91bmQuCiAqLwppbnQgaTJjU2NhbigpIHsKICBpbnQgZm91bmQgPSAwOwogIFNlcmlhbC5wcmludGxuKCJcbltTQ0FOXSBJMkMgYnVzIHNjYW4gKDB4MDjigJMweDc3KS4uLiIpOwoKICBmb3IgKHVpbnQ4X3QgYWRkciA9IDB4MDg7IGFkZHIgPD0gMHg3NzsgYWRkcisrKSB7CiAgICBXaXJlLmJlZ2luVHJhbnNtaXNzaW9uKGFkZHIpOwogICAgdWludDhfdCBlcnIgPSBXaXJlLmVuZFRyYW5zbWlzc2lvbigpOwoKICAgIGlmIChlcnIgPT0gMCkgewogICAgICBTZXJpYWwucHJpbnQoIiAgW0ZPVU5EXSBEZXZpY2UgYXQgMHgiKTsKICAgICAgaWYgKGFkZHIgPCAweDEwKSBTZXJpYWwucHJpbnQoIjAiKTsKICAgICAgU2VyaWFsLnByaW50KGFkZHIsIEhFWCk7CgogICAgICAvLyBBbm5vdGF0ZSBrbm93biBhZGRyZXNzZXMKICAgICAgaWYgKGFkZHIgPT0gQk5PMDg1X0FERFJfREVGQVVMVCkgU2VyaWFsLnByaW50KCIgIOKGkCBCTk8wODUgZGVmYXVsdCIpOwogICAgICBpZiAoYWRkciA9PSBCTk8wODVfQUREUl9BTFQpICAgICBTZXJpYWwucHJpbnQoIiAg4oaQIEJOTzA4NSBhbHQgKFNBMD1WQ0MpIik7CiAgICAgIGlmIChhZGRyID09IDB4NkEpICAgICAgICAgICAgICAgIFNlcmlhbC5wcmludCgiICDihpAgTFNNNkRTMyAoWElBTyBidWlsdC1pbiBJTVUpIik7CiAgICAgIFNlcmlhbC5wcmludGxuKCk7CiAgICAgIGZvdW5kKys7CiAgICB9IGVsc2UgaWYgKGVyciA9PSA0KSB7CiAgICAgIC8vIGVycj09NCBtZWFucyB0aGUgZGV2aWNlIGhlbGQgdGhlIGxpbmUgbG93IChidXMgZXJyb3IgLyBzdHVjayBTREEpCiAgICAgIFNlcmlhbC5wcmludCgiICBbRVJST1JdIEJ1cyBlcnJvciBhdCAweCIpOwogICAgICBpZiAoYWRkciA8IDB4MTApIFNlcmlhbC5wcmludCgiMCIpOwogICAgICBTZXJpYWwucHJpbnRsbihhZGRyLCBIRVgpOwogICAgfQogIH0KCiAgaWYgKGZvdW5kID09IDApIHsKICAgIFNlcmlhbC5wcmludGxuKCIgIFtOT05FXSBObyBJMkMgZGV2aWNlcyBmb3VuZC4iKTsKICAgIFNlcmlhbC5wcmludGxuKCIgID4+PiBDSEVDSzogQXJlIFNEQS9TQ0wgd2lyZXMgY29ubmVjdGVkPyBBcmUgdGhleSBzd2FwcGVkPyIpOwogICAgU2VyaWFsLnByaW50bG4oIiAgPj4+IENIRUNLOiBJcyBWQ0MgKDMuM1YpIGFuZCBHTkQgY29ubmVjdGVkIHRvIHRoZSBCTk8wODU/Iik7CiAgfQogIHJldHVybiBmb3VuZDsKfQoKLyoqCiAqIFRlc3QgV2lyZS5iZWdpbigpIGFuZCBzY2FuIGF0IGEgZ2l2ZW4gY2xvY2sgc3BlZWQuCiAqLwp2b2lkIHRlc3RBdENsb2NrU3BlZWQodWludDMyX3QgaHopIHsKICBTZXJpYWwucHJpbnQoIlxuW1RFU1RdIFJlc3RhcnRpbmcgV2lyZSBhdCAiKTsKICBTZXJpYWwucHJpbnQoaHogLyAxMDAwKTsKICBTZXJpYWwucHJpbnRsbigiIGtIei4uLiIpOwoKICBXaXJlLmVuZCgpOwogIGRlbGF5KDUwKTsKICBXaXJlLmJlZ2luKCk7CiAgV2lyZS5zZXRDbG9jayhoeik7CiAgZGVsYXkoV0lSRV9TRVRUTEVfTVMpOwoKICBpMmNTY2FuKCk7Cn0KCi8qKgogKiBBdHRlbXB0IHRvIGluaXRpYWxpemUgdGhlIEJOTzA4NSBsaWJyYXJ5IGF0IGEgZ2l2ZW4gYWRkcmVzcy4KICogUmV0dXJucyB0cnVlIGlmIGJlZ2luX0kyQygpIHN1Y2NlZWRzLgogKi8KYm9vbCB0ZXN0Qk5PMDg1SW5pdCh1aW50OF90IGFkZHIpIHsKICBTZXJpYWwucHJpbnQoIlxuW0JOTzA4NV0gVHJ5aW5nIGJlZ2luX0kyQygpIGF0IDB4Iik7CiAgU2VyaWFsLnByaW50bG4oYWRkciwgSEVYKTsKCiAgLy8gR2l2ZSB0aGUgQk5PMDg1IFNILTIgcHJvY2Vzc29yIHRpbWUgdG8gYm9vdAogIFNlcmlhbC5wcmludCgiICBXYWl0aW5nICIpOwogIFNlcmlhbC5wcmludChCTk8wODVfQk9PVF9NUyk7CiAgU2VyaWFsLnByaW50bG4oIiBtcyBmb3Igc2Vuc29yIGJvb3QuLi4iKTsKICBkZWxheShCTk8wODVfQk9PVF9NUyk7CgogIGlmIChibm8wODUuYmVnaW5fSTJDKGFkZHIpKSB7CiAgICBTZXJpYWwucHJpbnRsbigiICBbT0tdIEJOTzA4NSBpbml0aWFsaXplZCBzdWNjZXNzZnVsbHkhIik7CiAgICByZXR1cm4gdHJ1ZTsKICB9IGVsc2UgewogICAgU2VyaWFsLnByaW50bG4oIiAgW0ZBSUxdIGJlZ2luX0kyQygpIHJldHVybmVkIGZhbHNlLiIpOwogICAgcmV0dXJuIGZhbHNlOwogIH0KfQoKLyoqCiAqIElmIHRoZSBCTk8wODUgaW5pdGlhbGl6ZWQsIHRyeSBlbmFibGluZyBhIHJlcG9ydCBhbmQgcmVhZCBhIGZldyBzYW1wbGVzLgogKi8Kdm9pZCB0ZXN0U2Vuc29yUmVhZGJhY2soKSB7CiAgU2VyaWFsLnByaW50bG4oIlxuW1JFQURCQUNLXSBFbmFibGluZyBBUlZSX1NUQUJJTElaRURfUlYgcmVwb3J0IGF0IDEwMCBIei4uLiIpOwoKICAvLyAxMDAwMCDCtXMgPSAxMDAgSHoKICBpZiAoIWJubzA4NS5lbmFibGVSZXBvcnQoU0gyX0FSVlJfU1RBQklMSVpFRF9SViwgMTAwMDApKSB7CiAgICBTZXJpYWwucHJpbnRsbigiICBbRkFJTF0gZW5hYmxlUmVwb3J0KCkgcmV0dXJuZWQgZmFsc2UuIik7CiAgICBTZXJpYWwucHJpbnRsbigiICA+Pj4gQ0hFQ0s6IElzIHRoZSBzZW5zb3IgaW4gYSBjcmFzaGVkIHN0YXRlPyBUcnkgaGFyZHdhcmUgcmVzZXQuIik7CiAgICByZXR1cm47CiAgfQogIFNlcmlhbC5wcmludGxuKCIgIFtPS10gUmVwb3J0IGVuYWJsZWQuIik7CgogIFNlcmlhbC5wcmludGxuKCIgIFJlYWRpbmcgMTAgc2FtcGxlcyAodGltZW91dCA1IHMgZWFjaCkuLi4iKTsKICBzaDJfU2Vuc29yVmFsdWVfdCBzdjsKICBpbnQgY291bnQgPSAwOwogIHVpbnQzMl90IHQwID0gbWlsbGlzKCk7CgogIHdoaWxlIChjb3VudCA8IDEwICYmIChtaWxsaXMoKSAtIHQwKSA8IDUwMDBVTCkgewogICAgaWYgKGJubzA4NS5nZXRTZW5zb3JFdmVudCgmc3YpKSB7CiAgICAgIGlmIChzdi5zZW5zb3JJZCA9PSBTSDJfQVJWUl9TVEFCSUxJWkVEX1JWKSB7CiAgICAgICAgZmxvYXQgcXcgPSBzdi51bi5hcnZyU3RhYmlsaXplZFJWLnJlYWw7CiAgICAgICAgZmxvYXQgcXggPSBzdi51bi5hcnZyU3RhYmlsaXplZFJWLmk7CiAgICAgICAgZmxvYXQgcXkgPSBzdi51bi5hcnZyU3RhYmlsaXplZFJWLmo7CiAgICAgICAgZmxvYXQgcXogPSBzdi51bi5hcnZyU3RhYmlsaXplZFJWLms7CiAgICAgICAgdWludDhfdCBhY2MgPSBzdi51bi5hcnZyU3RhYmlsaXplZFJWLmFjY3VyYWN5OwoKICAgICAgICBTZXJpYWwucHJpbnQoIiAgU2FtcGxlICIpOwogICAgICAgIFNlcmlhbC5wcmludCgrK2NvdW50KTsKICAgICAgICBTZXJpYWwucHJpbnQoIjogcXc9Iik7CiAgICAgICAgU2VyaWFsLnByaW50KHF3LCA0KTsKICAgICAgICBTZXJpYWwucHJpbnQoIiBxeD0iKTsKICAgICAgICBTZXJpYWwucHJpbnQocXgsIDQpOwogICAgICAgIFNlcmlhbC5wcmludCgiIHF5PSIpOwogICAgICAgIFNlcmlhbC5wcmludChxeSwgNCk7CiAgICAgICAgU2VyaWFsLnByaW50KCIgcXo9Iik7CiAgICAgICAgU2VyaWFsLnByaW50KHF6LCA0KTsKICAgICAgICBTZXJpYWwucHJpbnQoIiBhY2N1cmFjeT0iKTsKICAgICAgICBTZXJpYWwucHJpbnRsbihhY2MpOyAgIC8vIDA9dW5jYWxpYnJhdGVkLCAzPWZ1bGx5IGNhbGlicmF0ZWQKICAgICAgfQogICAgfQogIH0KCiAgaWYgKGNvdW50ID09IDApIHsKICAgIFNlcmlhbC5wcmludGxuKCIgIFtXQVJOXSBObyBzYW1wbGVzIHJlY2VpdmVkIHdpdGhpbiA1IHMuIik7CiAgICBTZXJpYWwucHJpbnRsbigiICA+Pj4gQ0hFQ0s6IGVuYWJsZVJlcG9ydCgpIG1heSBoYXZlIHNpbGVudGx5IGZhaWxlZC4iKTsKICAgIFNlcmlhbC5wcmludGxuKCIgID4+PiBDSEVDSzogSXMgdGhlcmUgYSBsb25nIGRlbGF5KCkgYmxvY2tpbmcgdGhlIGxvb3A/Iik7CiAgfSBlbHNlIHsKICAgIFNlcmlhbC5wcmludGxuKCIgIFtPS10gUmVhZGJhY2sgc3VjY2Vzc2Z1bC4iKTsKICB9Cn0KCi8vIOKUgOKUgOKUgCBTRVRVUCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKCnZvaWQgc2V0dXAoKSB7CiAgU2VyaWFsLmJlZ2luKDExNTIwMCk7CgogIC8vIFdhaXQgdXAgdG8gMyBzIGZvciBVU0Igc2VyaWFsIChpbXBvcnRhbnQgb24gWElBTyBuUkY1Mjg0MCBvdmVyIFVTQikKICB3aGlsZSAoIVNlcmlhbCAmJiBtaWxsaXMoKSA8IDMwMDApOwoKICBTZXJpYWwucHJpbnRsbigiXG49PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Iik7CiAgU2VyaWFsLnByaW50bG4oIiAgQk5PMDg1IEkyQyBEaWFnbm9zdGljIOKAlCBYSUFPIG5SRjUyODQwIik7CiAgU2VyaWFsLnByaW50bG4oIj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0iKTsKCiAgLy8g4pSA4pSAIFNURVAgMTogU3RhbmRhcmQgSTJDIHNjYW4gYXQgMTAwIGtIeiDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKICBTZXJpYWwucHJpbnRsbigiXG7ilIDilIDilIAgU1RFUCAxOiBXaXJlLmJlZ2luKCkgKyBzY2FuIGF0IDEwMCBrSHog4pSA4pSA4pSAIik7CiAgV2lyZS5iZWdpbigpOwogIFdpcmUuc2V0Q2xvY2soSTJDX1NUQU5EQVJEX0haKTsKICBkZWxheShXSVJFX1NFVFRMRV9NUyk7CiAgaW50IGZvdW5kMTAwID0gaTJjU2NhbigpOwoKICAvLyDilIDilIAgU1RFUCAyOiBSZXBlYXQgc2NhbiBhdCA0MDAga0h6IOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAogIFNlcmlhbC5wcmludGxuKCJcbuKUgOKUgOKUgCBTVEVQIDI6IFNjYW4gYXQgNDAwIGtIeiAoZmFzdCBtb2RlKSDilIDilIDilIAiKTsKICB0ZXN0QXRDbG9ja1NwZWVkKEkyQ19GQVNUX0haKTsKCiAgLy8g4pSA4pSAIFNURVAgMzogQXR0ZW1wdCBCTk8wODUgaW5pdCBhdCBkZWZhdWx0IGFkZHJlc3Mg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAgU2VyaWFsLnByaW50bG4oIlxu4pSA4pSA4pSAIFNURVAgMzogQk5PMDg1IGJlZ2luX0kyQygpIGF0IDB4NEEgKGRlZmF1bHQpIOKUgOKUgOKUgCIpOwogIFdpcmUuZW5kKCk7CiAgV2lyZS5iZWdpbigpOwogIFdpcmUuc2V0Q2xvY2soSTJDX0ZBU1RfSFopOwogIGRlbGF5KFdJUkVfU0VUVExFX01TKTsKCiAgYm9vbCBvazRBID0gdGVzdEJOTzA4NUluaXQoQk5PMDg1X0FERFJfREVGQVVMVCk7CgogIC8vIOKUgOKUgCBTVEVQIDQ6IElmIDB4NEEgZmFpbGVkLCB0cnkgYWx0ZXJuYXRlIGFkZHJlc3MgMHg0QiDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKICBpZiAoIW9rNEEpIHsKICAgIFNlcmlhbC5wcmludGxuKCJcbuKUgOKUgOKUgCBTVEVQIDQ6IEJOTzA4NSBiZWdpbl9JMkMoKSBhdCAweDRCIChTQTA9VkNDKSDilIDilIDilIAiKTsKICAgIGJvb2wgb2s0QiA9IHRlc3RCTk8wODVJbml0KEJOTzA4NV9BRERSX0FMVCk7CgogICAgaWYgKG9rNEIpIHsKICAgICAgU2VyaWFsLnByaW50bG4oIlxuICA+Pj4gRElBR05PU0lTOiBCTk8wODUgZm91bmQgYXQgMHg0QiEiKTsKICAgICAgU2VyaWFsLnByaW50bG4oIiAgPj4+IEZJWDogU0EwL0FERFIgcGluIG9uIGJyZWFrb3V0IGlzIHB1bGxlZCBISUdILiIpOwogICAgICBTZXJpYWwucHJpbnRsbigiICA+Pj4gRWl0aGVyIHRpZSBTQTAgdG8gR05ELCBvciBjaGFuZ2UgeW91ciBjb2RlIHRvIHVzZSAweDRCLiIpOwogICAgfSBlbHNlIHsKICAgICAgU2VyaWFsLnByaW50bG4oIlxu4pSA4pSA4pSAIERJQUdOT1NJUyBTVU1NQVJZIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCIpOwogICAgICBTZXJpYWwucHJpbnRsbigiICBCTk8wODUgTk9UIGZvdW5kIGF0IDB4NEEgb3IgMHg0Qi4iKTsKICAgICAgU2VyaWFsLnByaW50bG4oKTsKICAgICAgU2VyaWFsLnByaW50bG4oIiAgTW9zdCBsaWtlbHkgY2F1c2VzIChpbiBvcmRlcik6Iik7CiAgICAgIFNlcmlhbC5wcmludGxuKCIgIDEuIFNEQS9TQ0wgd2lyZXMgYXJlIFNXQVBQRUQgb3IgZGlzY29ubmVjdGVkLiIpOwogICAgICBTZXJpYWwucHJpbnRsbigiICAgICBGaXg6IFNEQSDihpIgRDQgKFAwLjA2KSwgU0NMIOKGkiBENSAoUDAuMDcpLiIpOwogICAgICBTZXJpYWwucHJpbnRsbigiICAyLiBWQ0Mgb3IgR05EIG5vdCBjb25uZWN0ZWQgdG8gQk5PMDg1IGJyZWFrb3V0LiIpOwogICAgICBTZXJpYWwucHJpbnRsbigiICAgICBGaXg6IFZDQyDihpIgMy4zViBwaW4gb24gWElBTywgR05EIOKGkiBHTkQgcGluLiIpOwogICAgICBTZXJpYWwucHJpbnRsbigiICAzLiBGYXVsdHkgY2FibGUgb3IgYnJlYWRib2FyZCBjb250YWN0IChjaGVjayBjb250aW51aXR5KS4iKTsKICAgICAgU2VyaWFsLnByaW50bG4oIiAgNC4gQk5PMDg1IGJyZWFrb3V0IGRhbWFnZWQgKHRyeSByZXBsYWNpbmcgc2Vuc29yKS4iKTsKICAgICAgU2VyaWFsLnByaW50bG4oIiAgNS4gSTJDIGJ1cyBzdHVjayBMT1cgKGFub3RoZXIgZGV2aWNlIGhvbGRpbmcgU0RBIGRvd24pLiIpOwogICAgICBTZXJpYWwucHJpbnRsbigiICAgICBGaXg6IHBvd2VyLWN5Y2xlIGV2ZXJ5dGhpbmcsIG9yIGFkZCA0LjdrzqkgcHVsbC11cHMgb24iKTsKICAgICAgU2VyaWFsLnByaW50bG4oIiAgICAgU0RBIGFuZCBTQ0wgdG8gMy4zViBpZiB0aGUgYnJlYWtvdXQgbGFja3MgdGhlbS4iKTsKICAgIH0KICB9IGVsc2UgewogICAgLy8g4pSA4pSAIFNURVAgNTogU2Vuc29yIGZvdW5kIOKAlCB0ZXN0IGRhdGEgcmVhZGJhY2sg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAgICBTZXJpYWwucHJpbnRsbigiXG7ilIDilIDilIAgU1RFUCA1OiBTZW5zb3IgcmVhZGJhY2sgdGVzdCDilIDilIDilIAiKTsKICAgIHRlc3RTZW5zb3JSZWFkYmFjaygpOwoKICAgIFNlcmlhbC5wcmludGxuKCJcbuKUgOKUgOKUgCBESUFHTk9TSVMgU1VNTUFSWSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAiKTsKICAgIFNlcmlhbC5wcmludGxuKCIgIEJOTzA4NSBpcyBwcmVzZW50IGFuZCByZXNwb25kaW5nIGNvcnJlY3RseS4iKTsKICAgIFNlcmlhbC5wcmludGxuKCIgIElmIHlvdXIgbWFpbiBza2V0Y2ggc3RpbGwgZmFpbHMsIGNoZWNrOiIpOwogICAgU2VyaWFsLnByaW50bG4oIiAgMS4gV2lyZS5iZWdpbigpIGlzIGNhbGxlZCBCRUZPUkUgYm5vMDg1LmJlZ2luX0kyQygpLiIpOwogICAgU2VyaWFsLnByaW50bG4oIiAgMi4gV2lyZS5zZXRDbG9jayg0MDAwMDApIGlzIHNldCBiZWZvcmUgYmVnaW5fSTJDKCkuIik7CiAgICBTZXJpYWwucHJpbnRsbigiICAzLiBObyBvdGhlciBjb2RlIHBhdGggY2FsbHMgV2lyZS5lbmQoKSBvciByZWluaXRzIFdpcmUuIik7CiAgICBTZXJpYWwucHJpbnRsbigiICA0LiBUaGUgQk5PMDg1IG9iamVjdCBpcyBkZWNsYXJlZCBnbG9iYWxseSwgbm90IGluc2lkZSBzZXR1cCgpLiIpOwogIH0KCiAgU2VyaWFsLnByaW50bG4oIlxuPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSIpOwogIFNlcmlhbC5wcmludGxuKCIgIERpYWdub3N0aWMgY29tcGxldGUuIENoZWNrIG91dHB1dCBhYm92ZS4iKTsKICBTZXJpYWwucHJpbnRsbigiPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PVxuIik7Cn0KCi8vIOKUgOKUgOKUgCBMT09QIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAoKdm9pZCBsb29wKCkgewogIC8vIE5vdGhpbmcgdG8gZG8g4oCUIGFsbCBkaWFnbm9zdGljcyBydW4gb25jZSBpbiBzZXR1cCgpLgogIC8vIFJlLW9wZW4gU2VyaWFsIE1vbml0b3IgYW5kIHByZXNzIFJFU0VUIHRvIHJ1biBhZ2Fpbi4KICBkZWxheSgxMDAwMCk7Cn0K"}], "grading": null}, {"id": "eval-2-diagnostico-i2c-without_skill", "prompt": "El BNO085 no me responde por I2C. Cuando corro el sketch me sale 'BNO085 not found at 0x4A' en el serial monitor. \u00bfQu\u00e9 puede estar pasando y c\u00f3mo lo diagnostico? Dame c\u00f3digo de diagn\u00f3stico.", "eval_id": 2, "outputs": [{"name": "bno085_i2c_diagnostico.ino", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,LyoqCiAqIGJubzA4NV9pMmNfZGlhZ25vc3RpY28uaW5vCiAqCiAqIFNrZXRjaCBkZSBkaWFnbm9zdGljbyBJMkMgcGFyYSBCTk8wODUgZW4gWElBTyBuUkY1Mjg0MCBTZW5zZQogKiBDdWJyZTogc2NhbiBkZSBidXMsIHZlcmlmaWNhY2lvbiBkZSBkaXJlY2Npb24sIHRlbnNpb25lcyBsb2dpY2FzLAogKiAgICAgICAgcHVsbC11cHMsIHZlbG9jaWRhZCBkZSBidXMgeSBjb211bmljYWNpb24gYmFzaWNhLgogKgogKiBEZXBlbmRlbmNpYXM6CiAqICAgLSBTcGFya0Z1biBCTk8wOHggQXJkdWlubyBMaWJyYXJ5IChTcGFya0Z1bl9CTk8wOHhfQXJkdWlub19MaWJyYXJ5KQogKiAgIC0gV2lyZSAoaW5jbHVpZGEgZW4gZWwgY29yZSBkZSBBcmR1aW5vIC8gTWJlZCBPUyBuUkY1MikKICoKICogVXNvOgogKiAgIDEuIENvbXBpbGFyIHkgc3ViaXIgYWwgWElBTyBuUkY1Mjg0MCBTZW5zZS4KICogICAyLiBBYnJpciBTZXJpYWwgTW9uaXRvciBhIDExNTIwMCBiYXVkLgogKiAgIDMuIExlZXIgY2FkYSBzZWNjaW9uIGRlbCBpbmZvcm1lIHkgc2VndWlyIGxhcyByZWNvbWVuZGFjaW9uZXMuCiAqLwoKI2luY2x1ZGUgPFdpcmUuaD4KI2luY2x1ZGUgPFNwYXJrRnVuX0JOTzA4eF9BcmR1aW5vX0xpYnJhcnkuaD4KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBDT05GSUdVUkFDSU9OCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKLy8gUGluZXMgSTJDIGRlbCBYSUFPIG5SRjUyODQwIFNlbnNlIChwdWVkZSBmb3J6YXJsb3Mgc2kgZWwgY29yZSBsb3MgaWdub3JhKQovLyBTREEgPSBQMC4wNCAocGluIDQpLCBTQ0wgPSBQMC4wNSAocGluIDUpICA8LS0gZGVmYXVsdHMgZGVsIGNvcmUKLy8gU2kgdXNhcyBwaW5lcyBhbHRlcm5hdGl2b3MsIGNhbWJpYSBhcXVpOgojZGVmaW5lIEkyQ19TREEgICA0CiNkZWZpbmUgSTJDX1NDTCAgIDUKCi8vIERpcmVjY2lvbmVzIHBvc2libGVzIGRlbCBCTk8wODUgc2VndW4gbml2ZWwgZGUgQUQwL1BTMQojZGVmaW5lIEFERFJfQk5PMDg1X0xPVyAgIDB4NEEgICAvLyBBRDAgPSBHTkQgKGRlZmF1bHQpCiNkZWZpbmUgQUREUl9CTk8wODVfSElHSCAgMHg0QiAgIC8vIEFEMCA9IFZDQwoKLy8gVmVsb2NpZGFkZXMgZGUgYnVzIGEgcHJvYmFyIChIeikKY29uc3QgdWludDMyX3QgSTJDX1NQRUVEU1tdID0gezEwMDAwMFVMLCA0MDAwMDBVTH07CmNvbnN0IHVpbnQ4X3QgIE5fU1BFRURTID0gMjsKCi8vIE51bWVybyBkZSBpbnRlbnRvcyBkZSBzY2FuIHBvciB2ZWxvY2lkYWQKI2RlZmluZSBTQ0FOX0FUVEVNUFRTICAzCgovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8gT0JKRVRPUwovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KQk5PMDh4IGltdTsKCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBVVElMSURBREVTCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKdm9pZCBzZXBhcmFkb3IoY2hhciBjID0gJy0nLCB1aW50OF90IG4gPSA1MCkgewogIGZvciAodWludDhfdCBpID0gMDsgaSA8IG47IGkrKykgU2VyaWFsLnByaW50KGMpOwogIFNlcmlhbC5wcmludGxuKCk7Cn0KCnZvaWQgdGl0dWxvKGNvbnN0IGNoYXIqIHRleHRvKSB7CiAgU2VyaWFsLnByaW50bG4oKTsKICBzZXBhcmFkb3IoJz0nKTsKICBTZXJpYWwucHJpbnRsbih0ZXh0byk7CiAgc2VwYXJhZG9yKCc9Jyk7Cn0KCi8vIFJldG9ybmEgdHJ1ZSBzaSBlbCBkaXNwb3NpdGl2byBBQ0sgZW4gZXNhIGRpcmVjY2lvbgpib29sIHByb2JlQWRkcmVzcyh1aW50OF90IGFkZHIpIHsKICBXaXJlLmJlZ2luVHJhbnNtaXNzaW9uKGFkZHIpOwogIHJldHVybiAoV2lyZS5lbmRUcmFuc21pc3Npb24oKSA9PSAwKTsKfQoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIE1PRFVMTyAxIOKAlCBTQ0FOIENPTVBMRVRPIERFTCBCVVMgSTJDCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKdm9pZCBzY2FuQnVzKHVpbnQzMl90IHNwZWVkKSB7CiAgV2lyZS5zZXRDbG9jayhzcGVlZCk7CiAgU2VyaWFsLnByaW50KCIgIEJ1cyBjbG9jazogIik7CiAgU2VyaWFsLnByaW50KHNwZWVkIC8gMTAwMCk7CiAgU2VyaWFsLnByaW50bG4oIiBrSHoiKTsKCiAgdWludDhfdCBmb3VuZCA9IDA7CiAgU2VyaWFsLnByaW50KCIgIERpc3Bvc2l0aXZvcyBlbmNvbnRyYWRvczogIik7CgogIGZvciAodWludDhfdCBhZGRyID0gMTsgYWRkciA8IDEyNzsgYWRkcisrKSB7CiAgICBpZiAocHJvYmVBZGRyZXNzKGFkZHIpKSB7CiAgICAgIFNlcmlhbC5wcmludCgiMHgiKTsKICAgICAgaWYgKGFkZHIgPCAxNikgU2VyaWFsLnByaW50KCIwIik7CiAgICAgIFNlcmlhbC5wcmludChhZGRyLCBIRVgpOwogICAgICBTZXJpYWwucHJpbnQoIiAiKTsKICAgICAgZm91bmQrKzsKICAgIH0KICB9CgogIGlmIChmb3VuZCA9PSAwKSB7CiAgICBTZXJpYWwucHJpbnQoIltOSU5HVU5PXSIpOwogIH0KICBTZXJpYWwucHJpbnRsbigpOwogIFNlcmlhbC5wcmludCgiICBUb3RhbDogIik7CiAgU2VyaWFsLnByaW50bG4oZm91bmQpOwp9Cgp2b2lkIG1vZHVsb1NjYW5CdXMoKSB7CiAgdGl0dWxvKCJNT0RVTE8gMTogU0NBTiBDT01QTEVUTyBERUwgQlVTIEkyQyIpOwogIFNlcmlhbC5wcmludGxuKCJCdXNjYW5kbyBkaXNwb3NpdGl2b3MgZW4gZWwgYnVzIGEgZGlmZXJlbnRlcyB2ZWxvY2lkYWRlcy4uLiIpOwoKICBmb3IgKHVpbnQ4X3QgcyA9IDA7IHMgPCBOX1NQRUVEUzsgcysrKSB7CiAgICBTZXJpYWwucHJpbnRsbigpOwogICAgc2NhbkJ1cyhJMkNfU1BFRURTW3NdKTsKICB9CgogIFNlcmlhbC5wcmludGxuKCk7CiAgU2VyaWFsLnByaW50bG4oIklOVEVSUFJFVEFDSU9OOiIpOwogIFNlcmlhbC5wcmludGxuKCIgIC0gU2kgbm8gYXBhcmVjZSBuaW5ndW5hIGRpcmVjY2lvbjogcHJvYmxlbWEgZGUgY2FibGVhZG8gbyBwdWxsLXVwcy4iKTsKICBTZXJpYWwucHJpbnRsbigiICAtIFNpIGFwYXJlY2UgMHg0QSBvIDB4NEI6IEJOTzA4NSBkZXRlY3RhZG8gZW4gYnVzLiIpOwogIFNlcmlhbC5wcmludGxuKCIgIC0gU2kgYXBhcmVjZSBzb2xvIGEgMTAwa0h6IHBlcm8gbm8gYSA0MDBrSHo6IHByb2JsZW1hIGRlIGNhbGlkYWQgZGUgc2VuaWFsLiIpOwp9CgovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8gTU9EVUxPIDIg4oCUIFZFUklGSUNBQ0lPTiBERSBESVJFQ0NJT04gQk5PMDg1Ci8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKdm9pZCBtb2R1bG9EaXJlY2Npb24oKSB7CiAgdGl0dWxvKCJNT0RVTE8gMjogVkVSSUZJQ0FDSU9OIERFIERJUkVDQ0lPTiBCTk8wODUiKTsKICBXaXJlLnNldENsb2NrKDEwMDAwMFVMKTsKCiAgYm9vbCBlbmNvbnRyYWRvNEEgPSBmYWxzZTsKICBib29sIGVuY29udHJhZG80QiA9IGZhbHNlOwoKICAvLyBWYXJpb3MgaW50ZW50b3MgcGFyYSBkZXNjYXJ0YXIgZXJyb3JlcyB0cmFuc2l0b3Jpb3MKICBmb3IgKHVpbnQ4X3QgaW50ZW50byA9IDA7IGludGVudG8gPCBTQ0FOX0FUVEVNUFRTOyBpbnRlbnRvKyspIHsKICAgIGlmIChwcm9iZUFkZHJlc3MoQUREUl9CTk8wODVfTE9XKSkgIGVuY29udHJhZG80QSA9IHRydWU7CiAgICBpZiAocHJvYmVBZGRyZXNzKEFERFJfQk5PMDg1X0hJR0gpKSBlbmNvbnRyYWRvNEIgPSB0cnVlOwogICAgZGVsYXkoMTApOwogIH0KCiAgU2VyaWFsLnByaW50KCIgIDB4NEEgKEFEMC9QUzEgPSBHTkQpOiAiKTsKICBTZXJpYWwucHJpbnRsbihlbmNvbnRyYWRvNEEgPyAiRU5DT05UUkFETyIgOiAibm8gZW5jb250cmFkbyIpOwogIFNlcmlhbC5wcmludCgiICAweDRCIChBRDAvUFMxID0gVkNDKTogIik7CiAgU2VyaWFsLnByaW50bG4oZW5jb250cmFkbzRCID8gIkVOQ09OVFJBRE8iIDogIm5vIGVuY29udHJhZG8iKTsKCiAgU2VyaWFsLnByaW50bG4oKTsKICBTZXJpYWwucHJpbnRsbigiSU5URVJQUkVUQUNJT046Iik7CiAgaWYgKCFlbmNvbnRyYWRvNEEgJiYgIWVuY29udHJhZG80QikgewogICAgU2VyaWFsLnByaW50bG4oIiAgW0VSUk9SXSBCTk8wODUgbm8gcmVzcG9uZGUgZW4gbmluZ3VuYSBkaXJlY2Npb24uIik7CiAgICBTZXJpYWwucHJpbnRsbigiICBDYXVzYXMgcHJvYmFibGVzOiIpOwogICAgU2VyaWFsLnByaW50bG4oIiAgICAxLiBDYWJsZSBTREEgbyBTQ0wgZGVzY29uZWN0YWRvIG8gZW4gbWFsIGNvbnRhY3RvLiIpOwogICAgU2VyaWFsLnByaW50bG4oIiAgICAyLiBWQ0MvMy4zViBkZWwgc2Vuc29yIG5vIHByZXNlbnRlIChtaWRlIGNvbiBtdWx0aW1ldHJvKS4iKTsKICAgIFNlcmlhbC5wcmludGxuKCIgICAgMy4gUHVsbC11cHMgZmFsdGFudGVzIG8gZGVtYXNpYWRvIGRlYmlsZXMgKD4xMGsgb2htKS4iKTsKICAgIFNlcmlhbC5wcmludGxuKCIgICAgNC4gUGluIE5SU1QgZGVsIEJOTzA4NSBlbiBiYWpvIOKAlCBuZWNlc2l0YSBhbCBtZW5vcyAxMG1zIGVuIGFsdG8uIik7CiAgICBTZXJpYWwucHJpbnRsbigiICAgIDUuIEludGVyZmF6IEkyQyBubyBoYWJpbGl0YWRhIGVuIGVsIHNlbnNvciAoUFMwL1BTMSBtYWwgY29uZmlndXJhZG9zKS4iKTsKICAgIFNlcmlhbC5wcmludGxuKCIgICAgNi4gU2Vuc29yIGRhbmFkby4iKTsKICB9IGVsc2UgaWYgKGVuY29udHJhZG80QSAmJiAhZW5jb250cmFkbzRCKSB7CiAgICBTZXJpYWwucHJpbnRsbigiICBbT0tdIEJOTzA4NSByZXNwb25kZSBlbiAweDRBLiBBRDAvUFMxID0gR05EIChjb3JyZWN0byBwb3IgZGVmZWN0bykuIik7CiAgICBTZXJpYWwucHJpbnRsbigiICBTaSBlbCBza2V0Y2ggcHJpbmNpcGFsIHVzYSAweDRCLCBjYW1iaWEgbGEgZGlyZWNjaW9uIGVuIGVsIGNvZGlnby4iKTsKICB9IGVsc2UgaWYgKCFlbmNvbnRyYWRvNEEgJiYgZW5jb250cmFkbzRCKSB7CiAgICBTZXJpYWwucHJpbnRsbigiICBbT0tdIEJOTzA4NSByZXNwb25kZSBlbiAweDRCLiBBRDAvUFMxID0gVkNDLiIpOwogICAgU2VyaWFsLnByaW50bG4oIiAgU2kgZWwgc2tldGNoIHByaW5jaXBhbCB1c2EgMHg0QSwgY2FtYmlhIGxhIGRpcmVjY2lvbiBlbiBlbCBjb2RpZ28uIik7CiAgfSBlbHNlIHsKICAgIFNlcmlhbC5wcmludGxuKCIgIFtJTkZPXSBSZXNwb25kZSBlbiBhbWJhcyBkaXJlY2Npb25lcyAocG9jbyBwcm9iYWJsZTsgdmVyaWZpY2EgcGFyYXNpdG9zKS4iKTsKICB9Cn0KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBNT0RVTE8gMyDigJQgVkVSSUZJQ0FDSU9OIERFIENPTkZJR1VSQUNJT04gUFMwL1BTMQovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCnZvaWQgbW9kdWxvUFMwUFMxKCkgewogIHRpdHVsbygiTU9EVUxPIDM6IENPTkZJR1VSQUNJT04gREUgSU5URVJGQVogKFBTMCAvIFBTMSkiKTsKICBTZXJpYWwucHJpbnRsbigiRWwgQk5PMDg1IHNlbGVjY2lvbmEgZWwgcHJvdG9jb2xvIHNlZ3VuIFBTMCB5IFBTMToiKTsKICBTZXJpYWwucHJpbnRsbigpOwogIFNlcmlhbC5wcmludGxuKCIgIFBTMT0wLCBQUzA9MCAgPT4gSTJDICAgKEFEMD1HTkQgPT4gMHg0QSkiKTsKICBTZXJpYWwucHJpbnRsbigiICBQUzE9MCwgUFMwPTEgID0+IFVBUlQtUlZDIik7CiAgU2VyaWFsLnByaW50bG4oIiAgUFMxPTEsIFBTMD0wICA9PiBTUEkiKTsKICBTZXJpYWwucHJpbnRsbigiICBQUzE9MSwgUFMwPTEgID0+IEkyQyAgIChBRDA9VkNDID0+IDB4NEIpIik7CiAgU2VyaWFsLnByaW50bG4oKTsKICBTZXJpYWwucHJpbnRsbigiQUNDSU9OOiBWZXJpZmljYSBjb24gbXVsdGltZXRybyBxdWUgUFMwIGVzdGUgZW4gMCAoR05EKSB5IFBTMSBlbiAwIChHTkQpIik7CiAgU2VyaWFsLnByaW50bG4oInBhcmEgdXNhciBJMkMgY29uIGRpcmVjY2lvbiAweDRBLiIpOwogIFNlcmlhbC5wcmludGxuKCJNdWNob3MgbW9kdWxvcyBicmVha291dCB0aWVuZW4gUFMwL1BTMSBjb250cm9sYWRvcyBwb3IganVtcGVycyBvIHJlc2lzdGVuY2lhcy4iKTsKICBTZXJpYWwucHJpbnRsbigiRW4gZWwgbW9kdWxvIEFkYWZydWl0IEJOTzA4NTogU0EwIGNvbnRyb2xhIEFEMCAobGEgTFNCIGRlIGxhIGRpcmVjY2lvbikuIik7Cn0KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBNT0RVTE8gNCDigJQgUFJVRUJBIERFIFJFU0VUIFkgVElFTVBPIERFIEFSUkFOUVVFCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKdm9pZCBtb2R1bG9SZXNldCgpIHsKICB0aXR1bG8oIk1PRFVMTyA0OiBQUlVFQkEgREUgUkVTRVQgWSBUSUVNUE8gREUgQVJSQU5RVUUiKTsKICBTZXJpYWwucHJpbnRsbigiRWwgQk5PMDg1IG5lY2VzaXRhIH40MDBtcyB0cmFzIGVsIHJlc2V0IHBhcmEgZXN0YXIgbGlzdG8uIik7CiAgU2VyaWFsLnByaW50bG4oIlByb2JhbmRvIGNvbiBkZWxheXMgZGUgMTAwbXMsIDMwMG1zIHkgNjAwbXMuLi4iKTsKCiAgY29uc3QgdWludDE2X3QgZGVsYXlzW10gPSB7MTAwLCAzMDAsIDYwMH07CiAgZm9yICh1aW50OF90IGkgPSAwOyBpIDwgMzsgaSsrKSB7CiAgICBXaXJlLnNldENsb2NrKDEwMDAwMFVMKTsKICAgIC8vIFNpbXVsYSB1biBjaWNsbyBkZSBlbmNlbmRpZG8gZXNwZXJhbmRvIGVsIHRpZW1wbyBpbmRpY2FkbwogICAgZGVsYXkoZGVsYXlzW2ldKTsKICAgIGJvb2wgb2sgPSBwcm9iZUFkZHJlc3MoQUREUl9CTk8wODVfTE9XKSB8fCBwcm9iZUFkZHJlc3MoQUREUl9CTk8wODVfSElHSCk7CiAgICBTZXJpYWwucHJpbnQoIiAgRGVsYXkgIik7CiAgICBTZXJpYWwucHJpbnQoZGVsYXlzW2ldKTsKICAgIFNlcmlhbC5wcmludCgibXMgPT4gQk5PMDg1IGFjY2VzaWJsZTogIik7CiAgICBTZXJpYWwucHJpbnRsbihvayA/ICJTSSIgOiAiTk8iKTsKICB9CgogIFNlcmlhbC5wcmludGxuKCk7CiAgU2VyaWFsLnByaW50bG4oIklOVEVSUFJFVEFDSU9OOiIpOwogIFNlcmlhbC5wcmludGxuKCIgIFNpIHJlc3BvbmRlIGNvbiA2MDBtcyBwZXJvIG5vIGNvbiAxMDBtczogYXVtZW50YSBlbCBkZWxheSBkZSBpbmljaW8iKTsKICBTZXJpYWwucHJpbnRsbigiICBlbiB0dSBza2V0Y2ggcHJpbmNpcGFsIChhZ3JlZ2FyIGRlbGF5KDYwMCkgYW50ZXMgZGUgaW11LmJlZ2luKCkpLiIpOwp9CgovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8gTU9EVUxPIDUg4oCUIFBSVUVCQSBERSBJTklDSUFMSVpBQ0lPTiBDT04gTElCUkVSSUEgU1BBUktGVU4KLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cgp2b2lkIG1vZHVsb0luaWNpYWxpemFjaW9uKCkgewogIHRpdHVsbygiTU9EVUxPIDU6IElOSUNJQUxJWkFDSU9OIENPTiBMSUJSRVJJQSBTUEFSS0ZVTiBCTk8wOHgiKTsKICBXaXJlLnNldENsb2NrKDQwMDAwMFVMKTsKICBkZWxheSg2MDApOwoKICBTZXJpYWwucHJpbnRsbigiSW50ZW50YW5kbyBpbXUuYmVnaW4oKSBlbiAweDRBIC4uLiIpOwogIGJvb2wgb2s0QSA9IGltdS5iZWdpbihBRERSX0JOTzA4NV9MT1csIFdpcmUpOwogIFNlcmlhbC5wcmludCgiICBiZWdpbigweDRBKTogIik7CiAgU2VyaWFsLnByaW50bG4ob2s0QSA/ICJFWElUTyIgOiAiRkFMTE8iKTsKCiAgaWYgKCFvazRBKSB7CiAgICBTZXJpYWwucHJpbnRsbigiSW50ZW50YW5kbyBpbXUuYmVnaW4oKSBlbiAweDRCIC4uLiIpOwogICAgYm9vbCBvazRCID0gaW11LmJlZ2luKEFERFJfQk5PMDg1X0hJR0gsIFdpcmUpOwogICAgU2VyaWFsLnByaW50KCIgIGJlZ2luKDB4NEIpOiAiKTsKICAgIFNlcmlhbC5wcmludGxuKG9rNEIgPyAiRVhJVE8iIDogIkZBTExPIik7CgogICAgaWYgKCFvazRCKSB7CiAgICAgIFNlcmlhbC5wcmludGxuKCk7CiAgICAgIFNlcmlhbC5wcmludGxuKCIgIFtFUlJPUl0gTGEgbGlicmVyaWEgbm8gcHVkbyBpbmljaWFsaXphciBlbCBzZW5zb3IuIik7CiAgICAgIFNlcmlhbC5wcmludGxuKCIgIFZlcmlmaWNhIGxvcyBtb2R1bG9zIGFudGVyaW9yZXMgYW50ZXMgZGUgY29udGludWFyLiIpOwogICAgfSBlbHNlIHsKICAgICAgU2VyaWFsLnByaW50bG4oKTsKICAgICAgU2VyaWFsLnByaW50bG4oIiAgW09LXSBTZW5zb3IgaW5pY2lhbGl6YWRvIGVuIDB4NEIuIik7CiAgICAgIFNlcmlhbC5wcmludGxuKCIgIENhbWJpYSBsYSBkaXJlY2Npb24gZW4gdHUgc2tldGNoIHByaW5jaXBhbCBhIDB4NEIuIik7CiAgICB9CiAgfSBlbHNlIHsKICAgIFNlcmlhbC5wcmludGxuKCk7CiAgICBTZXJpYWwucHJpbnRsbigiICBbT0tdIFNlbnNvciBpbmljaWFsaXphZG8gY29ycmVjdGFtZW50ZSBlbiAweDRBLiIpOwoKICAgIC8vIExlY3R1cmEgcmFwaWRhIGRlIHZlcnNpb24gZGUgcHJvZHVjdG8KICAgIFNlcmlhbC5wcmludGxuKCIgIEhhYmlsaXRhbmRvIHJlcG9ydGUgZGUgYWNlbGVyb21ldHJvIHBvciA1IGxlY3R1cmFzLi4uIik7CiAgICBpbXUuZW5hYmxlQWNjZWxlcm9tZXRlcig1MCk7ICAvLyA1MG1zIGRlIHJlcG9ydGUKCiAgICB1aW50OF90IGxlY3R1cmFzID0gMDsKICAgIHVpbnQzMl90IHQwID0gbWlsbGlzKCk7CiAgICB3aGlsZSAobGVjdHVyYXMgPCA1ICYmIG1pbGxpcygpIC0gdDAgPCAzMDAwKSB7CiAgICAgIGlmIChpbXUud2FzUmVzZXQoKSkgewogICAgICAgIGltdS5lbmFibGVBY2NlbGVyb21ldGVyKDUwKTsKICAgICAgfQogICAgICBpZiAoaW11LmdldFNlbnNvckV2ZW50KCkpIHsKICAgICAgICBpZiAoaW11LmdldFNlbnNvckV2ZW50SUQoKSA9PSBTRU5TT1JfUkVQT1JUSURfQUNDRUxFUk9NRVRFUikgewogICAgICAgICAgU2VyaWFsLnByaW50KCIgIEFjZWwgWyIpOwogICAgICAgICAgU2VyaWFsLnByaW50KGxlY3R1cmFzICsgMSk7CiAgICAgICAgICBTZXJpYWwucHJpbnQoIl0geD0iKTsKICAgICAgICAgIFNlcmlhbC5wcmludChpbXUuZ2V0QWNjZWxYKCksIDMpOwogICAgICAgICAgU2VyaWFsLnByaW50KCIgeT0iKTsKICAgICAgICAgIFNlcmlhbC5wcmludChpbXUuZ2V0QWNjZWxZKCksIDMpOwogICAgICAgICAgU2VyaWFsLnByaW50KCIgej0iKTsKICAgICAgICAgIFNlcmlhbC5wcmludChpbXUuZ2V0QWNjZWxaKCksIDMpOwogICAgICAgICAgU2VyaWFsLnByaW50bG4oIiBtL3MyIik7CiAgICAgICAgICBsZWN0dXJhcysrOwogICAgICAgIH0KICAgICAgfQogICAgfQogICAgaWYgKGxlY3R1cmFzID09IDApIHsKICAgICAgU2VyaWFsLnByaW50bG4oIiAgW0FWSVNPXSBObyBzZSByZWNpYmllcm9uIGRhdG9zIGRlIGFjZWxlcm9tZXRybyBlbiAzIHNlZ3VuZG9zLiIpOwogICAgfQogIH0KfQoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIE1PRFVMTyA2IOKAlCBMRUNUVVJBIFJBVyBJMkMgREVMIFJFR0lTVFJPIFBST0RVQ1QgSUQKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cgp2b2lkIG1vZHVsb1Byb2R1Y3RJRCgpIHsKICB0aXR1bG8oIk1PRFVMTyA2OiBMRUNUVVJBIFJBVyBERUwgUFJPRFVDVCBJRCAoU0hUUCkiKTsKICBTZXJpYWwucHJpbnRsbigiRW52aWFuZG8gY29tYW5kbyBTSFRQIHBhcmEgb2J0ZW5lciBQcm9kdWN0IElEIGRlbCBCTk8wODUuLi4iKTsKCiAgV2lyZS5zZXRDbG9jaygxMDAwMDBVTCk7CiAgZGVsYXkoMTAwKTsKCiAgLy8gRWwgQk5PMDg1IHVzYSBTSFRQIHNvYnJlIEkyQy4gRWwgcHJpbWVyIHBhcXVldGUgdHJhcyBlbmNlbmRpZG8KICAvLyBlcyBlbCBQcm9kdWN0IElEIHJlc3BvbnNlIGVuIGVsIGNhbmFsIDIgKGV4ZWN1dGFibGUpLgogIC8vIEFxdWkgbGVlbW9zIGxvcyBwcmltZXJvcyBieXRlcyBkaXNwb25pYmxlcyBjb21vIHNhbml0eSBjaGVjay4KCiAgdWludDhfdCBidWZbMTZdOwogIHVpbnQ4X3QgYWRkciA9IEFERFJfQk5PMDg1X0xPVzsKCiAgLy8gU2kgMHg0QSBubyByZXNwb25kZSwgcHJ1ZWJhIGNvbiAweDRCCiAgaWYgKCFwcm9iZUFkZHJlc3MoYWRkcikpIHsKICAgIGFkZHIgPSBBRERSX0JOTzA4NV9ISUdIOwogIH0KCiAgaWYgKCFwcm9iZUFkZHJlc3MoYWRkcikpIHsKICAgIFNlcmlhbC5wcmludGxuKCIgIFtFUlJPUl0gTm8gaGF5IEFDSyBkZWwgc2Vuc29yLiBPbWl0aWVuZG8gbGVjdHVyYSByYXcuIik7CiAgICByZXR1cm47CiAgfQoKICAvLyBQZWRpciBQcm9kdWN0IElEOiBlbnZpYXIgaGVhZGVyIFNIVFAgKGxvbmdpdHVkIDQsIGNhbmFsIDIsIHNlcSAwKSArIGNtZCAweEY5CiAgdWludDhfdCBjbWRbXSA9IHsweDA1LCAweDAwLCAweDAyLCAweDAwLCAweEY5fTsKICBXaXJlLmJlZ2luVHJhbnNtaXNzaW9uKGFkZHIpOwogIGZvciAodWludDhfdCBpID0gMDsgaSA8IDU7IGkrKykgV2lyZS53cml0ZShjbWRbaV0pOwogIHVpbnQ4X3QgZXJyID0gV2lyZS5lbmRUcmFuc21pc3Npb24oZmFsc2UpOyAgLy8gcmVwZWF0ZWQgc3RhcnQKCiAgU2VyaWFsLnByaW50KCIgIGVuZFRyYW5zbWlzc2lvbiAoMD1PSyk6ICIpOwogIFNlcmlhbC5wcmludGxuKGVycik7CgogIGRlbGF5KDUwKTsKCiAgLy8gTGVlciByZXNwdWVzdGEKICBXaXJlLnJlcXVlc3RGcm9tKCh1aW50OF90KWFkZHIsICh1aW50OF90KTE2KTsKICB1aW50OF90IG4gPSAwOwogIHdoaWxlIChXaXJlLmF2YWlsYWJsZSgpICYmIG4gPCAxNikgewogICAgYnVmW24rK10gPSBXaXJlLnJlYWQoKTsKICB9CgogIFNlcmlhbC5wcmludCgiICBCeXRlcyByZWNpYmlkb3M6ICIpOwogIFNlcmlhbC5wcmludGxuKG4pOwogIFNlcmlhbC5wcmludCgiICBEYXRvcyAoaGV4KTogIik7CiAgZm9yICh1aW50OF90IGkgPSAwOyBpIDwgbjsgaSsrKSB7CiAgICBpZiAoYnVmW2ldIDwgMTYpIFNlcmlhbC5wcmludCgiMCIpOwogICAgU2VyaWFsLnByaW50KGJ1ZltpXSwgSEVYKTsKICAgIFNlcmlhbC5wcmludCgiICIpOwogIH0KICBTZXJpYWwucHJpbnRsbigpOwoKICBpZiAobiA+PSA0KSB7CiAgICB1aW50MTZfdCBsb25naXR1ZCA9ICh1aW50MTZfdClidWZbMF0gfCAoKHVpbnQxNl90KShidWZbMV0gJiAweDdGKSA8PCA4KTsKICAgIFNlcmlhbC5wcmludCgiICBTSFRQIGxvbmdpdHVkIGRlIHBhcXVldGUgZGVjbGFyYWRhOiAiKTsKICAgIFNlcmlhbC5wcmludGxuKGxvbmdpdHVkKTsKICB9CgogIFNlcmlhbC5wcmludGxuKCk7CiAgU2VyaWFsLnByaW50bG4oIklOVEVSUFJFVEFDSU9OOiIpOwogIFNlcmlhbC5wcmludGxuKCIgIC0gZW5kVHJhbnNtaXNzaW9uICE9IDA6IGVsIHNlbnNvciBubyBhY3VzYSByZWNpYm8gKHNpbiBwdWxsLXVwcywgc2luIFZDQykuIik7CiAgU2VyaWFsLnByaW50bG4oIiAgLSBCeXRlcyByZWNpYmlkb3MgPSAwOiAgZWwgc2Vuc29yIG5vIGVudmlvIGRhdG9zIChmYWxsbyBTSFRQIG8gcmVzZXQpLiIpOwogIFNlcmlhbC5wcmludGxuKCIgIC0gRGF0b3MgY29uIHBhdHJvbiAweDI4OiBQcm9kdWN0IElEIGRlbCBCTk8wODUgY29uZmlybWFkby4iKTsKfQoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIE1PRFVMTyA3IOKAlCBSRVNVTUVOIERFIENIRUNLTElTVCBERSBIQVJEV0FSRQovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCnZvaWQgbW9kdWxvQ2hlY2tsaXN0KCkgewogIHRpdHVsbygiTU9EVUxPIDc6IENIRUNLTElTVCBERSBIQVJEV0FSRSIpOwogIFNlcmlhbC5wcmludGxuKCJWZXJpZmljYSBtYW51YWxtZW50ZSBsb3Mgc2lndWllbnRlcyBwdW50b3M6Iik7CiAgU2VyaWFsLnByaW50bG4oKTsKICBTZXJpYWwucHJpbnRsbigiICBbIF0gVkNDIGRlbCBCTk8wODUgY29uZWN0YWRvIGEgMy4zViBkZWwgWElBTyAoTk8gYSA1VikuIik7CiAgU2VyaWFsLnByaW50bG4oIiAgWyBdIEdORCBkZWwgQk5PMDg1IGNvbmVjdGFkbyBhbCBHTkQgZGVsIFhJQU8uIik7CiAgU2VyaWFsLnByaW50bG4oIiAgWyBdIFNEQSBkZWwgQk5PMDg1IGNvbmVjdGFkbyBhbCBwaW4gU0RBIGRlbCBYSUFPIChENC9QMC4wNCkuIik7CiAgU2VyaWFsLnByaW50bG4oIiAgWyBdIFNDTCBkZWwgQk5PMDg1IGNvbmVjdGFkbyBhbCBwaW4gU0NMIGRlbCBYSUFPIChENS9QMC4wNSkuIik7CiAgU2VyaWFsLnByaW50bG4oIiAgWyBdIFB1bGwtdXAgZGUgNC43ayBvaG0gZW50cmUgU0RBIHkgMy4zVi4iKTsKICBTZXJpYWwucHJpbnRsbigiICBbIF0gUHVsbC11cCBkZSA0LjdrIG9obSBlbnRyZSBTQ0wgeSAzLjNWLiIpOwogIFNlcmlhbC5wcmludGxuKCIgICAgICAoYWxndW5vcyBicmVha291dHMgbGFzIGluY2x1eWVuIGludGVybmFtZW50ZTsgdmVyaWZpY2EgZWwgZXNxdWVtYXRpY28pLiIpOwogIFNlcmlhbC5wcmludGxuKCIgIFsgXSBQaW4gTlJTVCBkZWwgQk5PMDg1IGVuIGFsdG8gKDMuM1YpIG8gc2luIGNvbmVjdGFyLiIpOwogIFNlcmlhbC5wcmludGxuKCIgIFsgXSBQUzAgPSBHTkQgeSBQUzEgPSBHTkQgcGFyYSBzZWxlY2Npb25hciBtb2RvIEkyQy4iKTsKICBTZXJpYWwucHJpbnRsbigiICBbIF0gTG9uZ2l0dWQgZGUgY2FibGVzIDwgMjBjbSBwYXJhIGV2aXRhciBkZWdyYWRhY2lvbiBkZSBzZW5pYWwuIik7CiAgU2VyaWFsLnByaW50bG4oIiAgWyBdIE5vIGhheSBvdHJvcyBkaXNwb3NpdGl2b3MgSTJDIHF1ZSBjb21wYXJ0YW4gbGEgbWlzbWEgZGlyZWNjaW9uLiIpOwogIFNlcmlhbC5wcmludGxuKCk7CiAgU2VyaWFsLnByaW50bG4oIlBhcmEgZWwgWElBTyBuUkY1Mjg0MCBTZW5zZSBlc3BlY2lmaWNhbWVudGU6Iik7CiAgU2VyaWFsLnByaW50bG4oIiAgWyBdIEFzZWd1cmF0ZSBkZSBsbGFtYXIgV2lyZS5iZWdpbigpIEFOVEVTIGRlIHNldENsb2NrKCkuIik7CiAgU2VyaWFsLnByaW50bG4oIiAgWyBdIEVsIGNvcmUgTWJlZCBPUyBwdWVkZSByZXF1ZXJpciBXaXJlLmJlZ2luKFNEQSwgU0NMKSBjb24gcGluZXMgZXhwbGljaXRvcy4iKTsKICBTZXJpYWwucHJpbnRsbigiICBbIF0gU2kgdXNhcyBlbCBjb25lY3RvciBRd2lpYyAoSlNULVNIIDQtcGluKSwgZWwgb3JkZW4gZXM6IEdORC1WQ0MtU0RBLVNDTC4iKTsKfQoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIFNFVFVQICYgTE9PUAovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCnZvaWQgc2V0dXAoKSB7CiAgU2VyaWFsLmJlZ2luKDExNTIwMCk7CiAgLy8gRXNwZXJhciBoYXN0YSA1IHNlZ3VuZG9zIGEgcXVlIGFicmEgZWwgU2VyaWFsIE1vbml0b3IKICB1aW50MzJfdCB0MCA9IG1pbGxpcygpOwogIHdoaWxlICghU2VyaWFsICYmIG1pbGxpcygpIC0gdDAgPCA1MDAwKTsKCiAgU2VyaWFsLnByaW50bG4oKTsKICBTZXJpYWwucHJpbnRsbigiKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioiKTsKICBTZXJpYWwucHJpbnRsbigiICBESUFHTk9TVElDTyBJMkMgLSBCTk8wODUgKyBYSUFPIG5SRjUyODQwICAgIik7CiAgU2VyaWFsLnByaW50bG4oIioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqIik7CiAgU2VyaWFsLnByaW50bG4oIkZlY2hhIGRlIGNvbXBpbGFjaW9uOiAiIF9fREFURV9fICIgIiBfX1RJTUVfXyk7CgogIC8vIEluaWNpYWxpemFyIGJ1cyBJMkMgY29uIHBpbmVzIGV4cGxpY2l0b3MKICBXaXJlLmJlZ2luKCk7ICAgICAgICAgIC8vIHVzYSBwaW5lcyBwb3IgZGVmZWN0byBkZWwgY29yZQogIC8vIFNpIGxvcyBwaW5lcyBwb3IgZGVmZWN0byBubyBmdW5jaW9uYW4sIGRlc2NvbWVudGEgbGEgc2lndWllbnRlIGxpbmVhOgogIC8vIFdpcmUuYmVnaW4oSTJDX1NEQSwgSTJDX1NDTCk7CgogIFdpcmUuc2V0Q2xvY2soMTAwMDAwVUwpOwogIGRlbGF5KDYwMCk7ICAvLyBUaWVtcG8gZGUgYXJyYW5xdWUgZGVsIEJOTzA4NQoKICAvLyBFamVjdXRhciB0b2RvcyBsb3MgbW9kdWxvcyBkZSBkaWFnbm9zdGljbwogIG1vZHVsb1NjYW5CdXMoKTsKICBtb2R1bG9EaXJlY2Npb24oKTsKICBtb2R1bG9QUzBQUzEoKTsKICBtb2R1bG9SZXNldCgpOwogIG1vZHVsb0luaWNpYWxpemFjaW9uKCk7CiAgbW9kdWxvUHJvZHVjdElEKCk7CiAgbW9kdWxvQ2hlY2tsaXN0KCk7CgogIHRpdHVsbygiRElBR05PU1RJQ08gQ09NUExFVEFETyIpOwogIFNlcmlhbC5wcmludGxuKCJSZXZpc2EgY2FkYSBzZWNjaW9uIGFycmliYSB5IHNpZ3VlIGxhcyBpbmRpY2FjaW9uZXMuIik7CiAgU2VyaWFsLnByaW50bG4oIlNpIGVsIHByb2JsZW1hIHBlcnNpc3RlIHRyYXMgdmVyaWZpY2FyIGVsIGhhcmR3YXJlLCIpOwogIFNlcmlhbC5wcmludGxuKCJjb25zaWRlcmEgcHJvYmFyIGNvbiBvdHJvIEJOTzA4NSBvIGNvbiB1biBsb2dpYyBhbmFseXplci4iKTsKfQoKdm9pZCBsb29wKCkgewogIC8vIE5vIGhhY2UgbmFkYTsgZWwgZGlhZ25vc3RpY28gc2UgZWplY3V0YSB1bmEgc29sYSB2ZXogZW4gc2V0dXAoKQogIGRlbGF5KDEwMDApOwp9Cg=="}], "grading": null}, {"id": "eval-3-adaptive-sample-rate-with_skill", "prompt": "Quiero modificar el firmware de running para que el nodo detecte autom\u00e1ticamente cuando el atleta est\u00e1 quieto y baje la frecuencia de muestreo a 25Hz para ahorrar bater\u00eda, y suba a 100Hz cuando detecta movimiento.", "eval_id": 3, "outputs": [{"name": "ble_service.cpp", "type": "text", "content": "// ble_service.cpp \u2014 BLE GATT service implementation\n// Wearable Sport Monitor \u2014 Running Node\n\n#include \"ble_service.h\"\n\n// ------------------------------------------------------------------\n// UUIDs \u2014 unique to this project (generated via uuidgenerator.net)\n// Change if you deploy multiple independent wearable products.\n// ------------------------------------------------------------------\n#define SERVICE_UUID      \"19B10000-E8F2-537E-4F6C-D104768A1214\"\n#define SENSOR_CHAR_UUID  \"19B10001-E8F2-537E-4F6C-D104768A1214\"\n#define BATTERY_CHAR_UUID \"19B10002-E8F2-537E-4F6C-D104768A1214\"\n#define CONFIG_CHAR_UUID  \"19B10003-E8F2-537E-4F6C-D104768A1214\"\n\n// GATT objects\nstatic BLEService         sensorService(SERVICE_UUID);\nstatic BLECharacteristic  sensorChar(SENSOR_CHAR_UUID, BLERead | BLENotify, sizeof(BLEPacket));\nstatic BLEByteCharacteristic batteryChar(BATTERY_CHAR_UUID, BLERead);\nstatic BLEByteCharacteristic configChar(CONFIG_CHAR_UUID, BLEWrite);\n\n// Pending config request from Flutter app (0 = none pending)\nstatic uint8_t pendingConfigHz = 0;\n\n// ------------------------------------------------------------------\n// initBLE\n// ------------------------------------------------------------------\nbool initBLE(const char* deviceName) {\n  if (!BLE.begin()) {\n    Serial.println(\"ERROR: BLE init failed\");\n    return false;\n  }\n\n  BLE.setLocalName(deviceName);\n  BLE.setAdvertisedService(sensorService);\n\n  sensorService.addCharacteristic(sensorChar);\n  sensorService.addCharacteristic(batteryChar);\n  sensorService.addCharacteristic(configChar);\n\n  BLE.addService(sensorService);\n\n  // Initial battery value\n  batteryChar.writeValue((uint8_t)0);\n\n  BLE.advertise();\n\n  Serial.print(\"BLE advertising as: \");\n  Serial.println(deviceName);\n  return true;\n}\n\n// ------------------------------------------------------------------\n// pollBLE\n// ------------------------------------------------------------------\nvoid pollBLE() {\n  BLE.poll();\n\n  // Check if the Flutter app wrote a new sample rate request\n  if (configChar.written()) {\n    uint8_t val = configChar.value();\n    // Protocol: 1 = force 25 Hz, 2 = force 100 Hz\n    if (val == 1 || val == 2) {\n      pendingConfigHz = (val == 1) ? 25 : 100;\n      Serial.print(\"Config request received: \");\n      Serial.print(pendingConfigHz);\n      Serial.println(\" Hz\");\n    }\n  }\n}\n\n// ------------------------------------------------------------------\n// sendSensorData\n// ------------------------------------------------------------------\nbool sendSensorData(const SensorAngles& angles, uint32_t sessionStartMs) {\n  if (!BLE.connected()) return false;\n\n  BLEPacket pkt;\n\n  // Relative timestamp (rolls over after ~65 seconds \u2014 sufficient for\n  // a single BLE notification window; session start is tracked in app)\n  pkt.timestamp_ms = (uint16_t)((millis() - sessionStartMs) & 0xFFFF);\n\n  // Scale quaternion components to int16 (x10000 preserves 4 decimal places)\n  pkt.qw = (int16_t)(angles.qw * 10000.0f);\n  pkt.qx = (int16_t)(angles.qx * 10000.0f);\n  pkt.qy = (int16_t)(angles.qy * 10000.0f);\n  pkt.qz = (int16_t)(angles.qz * 10000.0f);\n\n  // Convert m/s\u00b2 \u2192 milli-g (1 g = 9810 mg)\n  // int16 range: \u00b132767 mg \u2248 \u00b13.3 g \u2014 sufficient for running (peak ~1.5 g)\n  pkt.accel_x = (int16_t)(angles.accel_x * (1000.0f / 9.81f));\n  pkt.accel_y = (int16_t)(angles.accel_y * (1000.0f / 9.81f));\n  pkt.accel_z = (int16_t)(angles.accel_z * (1000.0f / 9.81f));\n\n  sensorChar.writeValue((uint8_t*)&pkt, sizeof(pkt));\n  return true;\n}\n\n// ------------------------------------------------------------------\n// updateBattery\n// ------------------------------------------------------------------\nvoid updateBattery(uint8_t percent) {\n  batteryChar.writeValue(percent);\n}\n\n// ------------------------------------------------------------------\n// isBLEConnected\n// ------------------------------------------------------------------\nbool isBLEConnected() {\n  return BLE.connected();\n}\n\n// ------------------------------------------------------------------\n// consumeConfigRequest\n// ------------------------------------------------------------------\nuint8_t consumeConfigRequest() {\n  uint8_t val = pendingConfigHz;\n  pendingConfigHz = 0;\n  return val;\n}\n"}, {"name": "ble_service.h", "type": "text", "content": "// ble_service.h \u2014 BLE GATT service interface\n// Wearable Sport Monitor \u2014 Running Node\n//\n// Service exposes three characteristics:\n//   1. sensorChar  (NOTIFY)  \u2014 packed IMU data, 14 bytes per packet\n//   2. batteryChar (READ)    \u2014 battery percentage 0\u2013100\n//   3. configChar  (WRITE)   \u2014 sample rate override from Flutter app\n//\n// The configChar allows the Flutter app to manually force a sample\n// rate (1 byte: '1' = 25 Hz idle, '2' = 100 Hz active). The node's\n// adaptive logic still runs; this just overrides the current rate.\n\n#pragma once\n\n#include <Arduino.h>\n#include <ArduinoBLE.h>\n#include \"sensor.h\"\n\n// ------------------------------------------------------------------\n// BLE Packed Data Packet (14 bytes \u2014 fits BLE 4.2 default MTU of 20)\n// ------------------------------------------------------------------\nstruct __attribute__((packed)) BLEPacket {\n  uint16_t timestamp_ms;  // 2 bytes \u2014 ms elapsed since session start\n  int16_t  qw;            // 8 bytes \u2014 quaternion scaled x10000\n  int16_t  qx;\n  int16_t  qy;\n  int16_t  qz;\n  int16_t  accel_x;       // 6 bytes \u2014 linear accel in milli-g (1 g = 9.81 m/s\u00b2)\n  int16_t  accel_y;\n  int16_t  accel_z;\n                          // Total: 14 bytes\n};\n\n// ------------------------------------------------------------------\n// Public API\n// ------------------------------------------------------------------\n\n// Initialize BLE stack, build service, start advertising.\n// deviceName: e.g., \"SportBand-L\" or \"SportBand-R\"\nbool initBLE(const char* deviceName);\n\n// Must be called every loop iteration to service BLE events and\n// handle incoming configChar writes.\nvoid pollBLE();\n\n// Send a sensor sample over BLE NOTIFY if a central is connected.\n// Returns true if the packet was delivered.\nbool sendSensorData(const SensorAngles& angles, uint32_t sessionStartMs);\n\n// Update the battery characteristic (call every ~10 seconds).\nvoid updateBattery(uint8_t percent);\n\n// Returns true if a BLE central (Flutter app) is currently connected.\nbool isBLEConnected();\n\n// Returns the sample rate (Hz) requested via configChar, or 0 if no\n// override has been received. Caller should reset after reading.\nuint8_t consumeConfigRequest();\n"}, {"name": "motion_detector.cpp", "type": "text", "content": "// motion_detector.cpp \u2014 Adaptive sample rate controller implementation\n// Wearable Sport Monitor \u2014 Running Node\n\n#include \"motion_detector.h\"\n\n// ------------------------------------------------------------------\n// Constructor\n// ------------------------------------------------------------------\nMotionDetector::MotionDetector()\n  : _state(MOTION_IDLE),\n    _stateEnteredAt(0),\n    _thresholdCrossedAt(0),\n    _pendingTransition(false),\n    _pendingState(MOTION_IDLE)\n{}\n\n// ------------------------------------------------------------------\n// update()\n//\n// State machine with hysteresis debounce:\n//\n//   IDLE \u2500\u2500(accel > ACTIVE_THRESHOLD for ACTIVE_DEBOUNCE_MS)\u2500\u2500\u25ba ACTIVE\n//   ACTIVE \u2500(accel < IDLE_THRESHOLD  for IDLE_DEBOUNCE_MS)\u2500\u2500\u2500\u25ba IDLE\n//\n// Returns true when the state actually changes so the caller can\n// immediately call setSampleInterval() without polling getState().\n// ------------------------------------------------------------------\nbool MotionDetector::update(float accelMagnitude) {\n  uint32_t now = millis();\n\n  // Determine what state the current magnitude suggests\n  MotionState suggested;\n  float threshold;\n\n  if (_state == MOTION_IDLE) {\n    // Rising edge: need sustained activity above ACTIVE threshold\n    suggested = MOTION_ACTIVE;\n    threshold = MOTION_ACTIVE_THRESHOLD_MS2;\n  } else {\n    // Falling edge: need sustained stillness below IDLE threshold\n    suggested = MOTION_IDLE;\n    threshold = MOTION_IDLE_THRESHOLD_MS2;\n  }\n\n  bool conditionMet = (_state == MOTION_IDLE)\n                        ? (accelMagnitude > threshold)\n                        : (accelMagnitude < threshold);\n\n  if (conditionMet) {\n    if (!_pendingTransition || _pendingState != suggested) {\n      // Start timing the debounce window\n      _pendingTransition  = true;\n      _pendingState       = suggested;\n      _thresholdCrossedAt = now;\n    } else {\n      // Check if debounce window has elapsed\n      uint32_t debounceMs = (suggested == MOTION_ACTIVE)\n                              ? MOTION_ACTIVE_DEBOUNCE_MS\n                              : MOTION_IDLE_DEBOUNCE_MS;\n\n      if ((now - _thresholdCrossedAt) >= debounceMs) {\n        // Commit the state transition\n        _state             = suggested;\n        _stateEnteredAt    = now;\n        _pendingTransition = false;\n        return true;  // State changed \u2014 caller should update sample rate\n      }\n    }\n  } else {\n    // Condition no longer met \u2014 cancel any pending transition\n    _pendingTransition = false;\n  }\n\n  return false;  // No state change\n}\n\n// ------------------------------------------------------------------\n// getStateLabel\n// ------------------------------------------------------------------\nconst char* MotionDetector::getStateLabel() const {\n  return (_state == MOTION_ACTIVE) ? \"ACTIVE\" : \"IDLE\";\n}\n\n// ------------------------------------------------------------------\n// timeInCurrentState\n// ------------------------------------------------------------------\nuint32_t MotionDetector::timeInCurrentState() const {\n  return millis() - _stateEnteredAt;\n}\n"}, {"name": "motion_detector.h", "type": "text", "content": "// motion_detector.h \u2014 Adaptive sample rate controller\n// Wearable Sport Monitor \u2014 Running Node\n//\n// Detects whether the athlete is idle or active based on linear\n// acceleration magnitude. Drives automatic switching between:\n//   - SAMPLE_RATE_IDLE_HZ    (25 Hz)  when still  \u2192 saves battery\n//   - SAMPLE_RATE_RUNNING_HZ (100 Hz) when moving \u2192 full precision\n//\n// Hysteresis and debounce timers prevent rapid toggling at the\n// activity boundary (e.g., brief pauses mid-run).\n\n#pragma once\n\n#include <Arduino.h>\n#include \"sensor.h\"\n\n// ------------------------------------------------------------------\n// Configurable thresholds (tune after physical testing)\n// ------------------------------------------------------------------\n\n// Acceleration (m/s\u00b2) above which the athlete is considered active.\n// Gravity is already removed by SH2_LINEAR_ACCELERATION.\n// A standing person at rest reads ~0.05\u20130.15 m/s\u00b2 (sensor noise).\n// Walking generates peaks of 1\u20133 m/s\u00b2; running 5\u201315 m/s\u00b2.\n// Threshold of 0.5 m/s\u00b2 gives a comfortable margin above noise.\n#define MOTION_ACTIVE_THRESHOLD_MS2  0.5f\n\n// Acceleration below which the athlete is considered idle.\n// Lower than ACTIVE_THRESHOLD to add hysteresis and avoid flapping.\n#define MOTION_IDLE_THRESHOLD_MS2    0.3f\n\n// Time (ms) the signal must stay ABOVE the active threshold before\n// switching from IDLE \u2192 ACTIVE. Avoids single-spike false triggers.\n#define MOTION_ACTIVE_DEBOUNCE_MS    200\n\n// Time (ms) the signal must stay BELOW the idle threshold before\n// switching from ACTIVE \u2192 IDLE. Prevents switching during brief\n// pauses (e.g., athlete stops for 1 second at a traffic light).\n#define MOTION_IDLE_DEBOUNCE_MS      2000\n\n// ------------------------------------------------------------------\n// MotionDetector class\n// ------------------------------------------------------------------\nclass MotionDetector {\npublic:\n  MotionDetector();\n\n  // Call once per loop iteration with the latest linear acceleration\n  // magnitude (m/s\u00b2). Returns true if the motion state changed.\n  bool update(float accelMagnitude);\n\n  // Current motion state\n  MotionState getState() const { return _state; }\n\n  // Human-readable state label for Serial debugging\n  const char* getStateLabel() const;\n\n  // Milliseconds spent in the current state\n  uint32_t timeInCurrentState() const;\n\nprivate:\n  MotionState _state;\n  uint32_t    _stateEnteredAt;    // millis() when current state started\n  uint32_t    _thresholdCrossedAt; // millis() when pending transition began\n  bool        _pendingTransition;\n  MotionState _pendingState;\n};\n"}, {"name": "running_node.ino", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,Ly8gcnVubmluZ19ub2RlLmlubyDigJQgTWFpbiBmaXJtd2FyZSBmb3IgUnVubmluZyBOb2RlCi8vIFdlYXJhYmxlIFNwb3J0IE1vbml0b3Ig4oCUIFhJQU8gblJGNTI4NDAgU2Vuc2UgKyBCTk8wODUgKEkyQykKLy8KLy8gQURBUFRJVkUgU0FNUExFIFJBVEUgRkVBVFVSRToKLy8gICDigKIgV2hlbiB0aGUgYXRobGV0ZSBpcyBzdGlsbCAg4oaSIDI1IEh6ICAoNDAgbXMgaW50ZXJ2YWwpIOKAlCBzYXZlcyBiYXR0ZXJ5Ci8vICAg4oCiIFdoZW4gdGhlIGF0aGxldGUgaXMgbW92aW5nIOKGkiAxMDAgSHogKDEwIG1zIGludGVydmFsKSDigJQgZnVsbCBwcmVjaXNpb24KLy8gICDigKIgRGV0ZWN0aW9uIGlzIGJhc2VkIG9uIGxpbmVhciBhY2NlbGVyYXRpb24gbWFnbml0dWRlIHdpdGggaHlzdGVyZXNpcwovLyAgICAgZGVib3VuY2UgdG8gcHJldmVudCByYXBpZCB0b2dnbGluZy4KLy8KLy8g4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACi8vIFJlcXVpcmVkIGxpYnJhcmllcyAoaW5zdGFsbCB2aWEgQXJkdWlubyBMaWJyYXJ5IE1hbmFnZXIpOgovLyAgIC0gQWRhZnJ1aXQgQk5PMDh4ICAgICAgICAgICAgICAoYnkgQWRhZnJ1aXQpCi8vICAgLSBBZGFmcnVpdCBVbmlmaWVkIFNlbnNvciAgICAgIChkZXBlbmRlbmN5IG9mIEJOTzA4eCkKLy8gICAtIEFyZHVpbm9CTEUgICAgICAgICAgICAgICAgICAgKGJ5IEFyZHVpbm8pCi8vCi8vIEJvYXJkIChpbnN0YWxsIHZpYSBCb2FyZCBNYW5hZ2VyIOKGkiBhZGQgVVJMIGJlbG93KToKLy8gICBOYW1lOiBTZWVlZCBuUkY1MiBCb2FyZHMKLy8gICBVUkw6ICBodHRwczovL2ZpbGVzLnNlZWVkc3R1ZGlvLmNvbS9hcmR1aW5vL3BhY2thZ2Vfc2VlZWR1aW5vX2JvYXJkc19pbmRleC5qc29uCi8vICAgU2VsZWN0OiBTZWVlZCBYSUFPIEJMRSBTZW5zZSAtIG5SRjUyODQwCi8vIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAoKI2luY2x1ZGUgPFdpcmUuaD4KI2luY2x1ZGUgInNlbnNvci5oIgojaW5jbHVkZSAibW90aW9uX2RldGVjdG9yLmgiCiNpbmNsdWRlICJibGVfc2VydmljZS5oIgoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIENPTkZJR1VSQVRJT04g4oCUIGVkaXQgdGhlc2UgdmFsdWVzIGJlZm9yZSBmbGFzaGluZwovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCi8vIE5vZGUgaWRlbnRpdHk6IExFRlRfQU5LTEUgb3IgUklHSFRfQU5LTEUKLy8gQ2hhbmdlIHRvIFJJR0hUX0FOS0xFIHdoZW4gZmxhc2hpbmcgdGhlIHNlY29uZCBub2RlCiNkZWZpbmUgTEVGVF9BTktMRSAgMAojZGVmaW5lIFJJR0hUX0FOS0xFIDEKI2RlZmluZSBOT0RFX0lEICAgICBMRUZUX0FOS0xFCgojaWYgTk9ERV9JRCA9PSBMRUZUX0FOS0xFCiAgI2RlZmluZSBCTEVfREVWSUNFX05BTUUgICJTcG9ydEJhbmQtTCIKI2Vsc2UKICAjZGVmaW5lIEJMRV9ERVZJQ0VfTkFNRSAgIlNwb3J0QmFuZC1SIgojZW5kaWYKCi8vIFNhbXBsZSByYXRlcwojZGVmaW5lIFNBTVBMRV9SQVRFX1JVTk5JTkdfSFogICAxMDAgICAgLy8gQWN0aXZlIG1vZGUgIOKAlCAxMCBtcyBpbnRlcnZhbAojZGVmaW5lIFNBTVBMRV9SQVRFX0lETEVfSFogICAgICAgMjUgICAgLy8gSWRsZSBtb2RlICAgIOKAlCA0MCBtcyBpbnRlcnZhbAoKLy8gRGVyaXZlZCBpbnRlcnZhbHMgaW4gbWljcm9zZWNvbmRzICh1c2VkIGJ5IEJOTzA4NSBlbmFibGVSZXBvcnQpCiNkZWZpbmUgSU5URVJWQUxfUlVOTklOR19VUyAgKDEwMDAwMDBVTCAvIFNBTVBMRV9SQVRFX1JVTk5JTkdfSFopICAvLyAxMCwwMDAgwrVzCiNkZWZpbmUgSU5URVJWQUxfSURMRV9VUyAgICAgKDEwMDAwMDBVTCAvIFNBTVBMRV9SQVRFX0lETEVfSFopICAgICAvLyA0MCwwMDAgwrVzCgovLyBCYXR0ZXJ5IHJlYWQgaW50ZXJ2YWwgKG1zKSDigJQgcmVhZGluZyB0b28gb2Z0ZW4gd2FzdGVzIHBvd2VyCiNkZWZpbmUgQkFUVEVSWV9SRUFEX0lOVEVSVkFMX01TICAxMDAwMFVMICAgLy8gZXZlcnkgMTAgc2Vjb25kcwoKLy8gU2VyaWFsIGRlYnVnIG91dHB1dCDigJQgc2V0IHRvIGZhbHNlIHRvIGRpc2FibGUgYmVmb3JlIGZpbmFsIGRlcGxveW1lbnQKI2RlZmluZSBTRVJJQUxfREVCVUcgIHRydWUKCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBHTE9CQUwgU1RBVEUKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CgpNb3Rpb25EZXRlY3RvciBtb3Rpb25EZXRlY3RvcjsKCi8vIEN1cnJlbnQgc2FtcGxlIGludGVydmFsIChzdGFydHMgYXQgaWRsZSB0byBjb25zZXJ2ZSBiYXR0ZXJ5IG9uIGJvb3QpCnN0YXRpYyB1aW50MzJfdCBjdXJyZW50SW50ZXJ2YWxVcyA9IElOVEVSVkFMX0lETEVfVVM7CnN0YXRpYyBNb3Rpb25TdGF0ZSBjdXJyZW50TW90aW9uU3RhdGUgPSBNT1RJT05fSURMRTsKCi8vIFRpbWluZwpzdGF0aWMgdWludDMyX3Qgc2Vzc2lvblN0YXJ0TXMgICA9IDA7CnN0YXRpYyB1aW50MzJfdCBsYXN0QmF0dGVyeU1zICAgID0gMDsKc3RhdGljIHVpbnQzMl90IGxhc3RTYW1wbGVNcyAgICAgPSAwOwoKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci8vIEJBVFRFUlkgSEVMUEVSUwovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KCmZsb2F0IHJlYWRCYXR0ZXJ5Vm9sdGFnZSgpIHsKICAvLyBFbmFibGUgdGhlIHZvbHRhZ2UgZGl2aWRlciAoYWN0aXZlIExPVyBvbiBQMF8xNCkKICBwaW5Nb2RlKFAwXzE0LCBPVVRQVVQpOwogIGRpZ2l0YWxXcml0ZShQMF8xNCwgTE9XKTsKICBkZWxheSgxKTsKCiAgYW5hbG9nUmVmZXJlbmNlKEFSX0lOVEVSTkFMXzNfMCk7CiAgYW5hbG9nUmVhZFJlc29sdXRpb24oMTIpOwogIGludCByYXcgPSBhbmFsb2dSZWFkKFBJTl9WQkFUKTsKCiAgLy8gRGlzYWJsZSBkaXZpZGVyIHRvIHNhdmUgcG93ZXIKICBkaWdpdGFsV3JpdGUoUDBfMTQsIEhJR0gpOwogIHBpbk1vZGUoUDBfMTQsIElOUFVUKTsKCiAgLy8gUmVmZXJlbmNlIDMuMFYsIDEyLWJpdCBBREMsIDJ4IGRpdmlkZXIKICByZXR1cm4gKHJhdyAqIDMuMGYgLyA0MDk2LjBmKSAqIDIuMGY7Cn0KCnVpbnQ4X3QgcmVhZEJhdHRlcnlQZXJjZW50KCkgewogIGZsb2F0IHYgPSByZWFkQmF0dGVyeVZvbHRhZ2UoKTsKICBpbnQgcGN0ID0gKGludCkoKHYgLSAzLjJmKSAvICg0LjJmIC0gMy4yZikgKiAxMDAuMGYpOwogIHJldHVybiAodWludDhfdCljb25zdHJhaW4ocGN0LCAwLCAxMDApOwp9CgovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8gQURBUFRJVkUgUkFURSBIRUxQRVJTCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKLy8gQXBwbHkgYSBuZXcgc2FtcGxlIGludGVydmFsIHRvIHRoZSBCTk8wODUgYW5kIHVwZGF0ZSBsb2NhbCBzdGF0ZS4Kdm9pZCBhcHBseUludGVydmFsKHVpbnQzMl90IGludGVydmFsVXMsIE1vdGlvblN0YXRlIHN0YXRlKSB7CiAgaWYgKGludGVydmFsVXMgPT0gY3VycmVudEludGVydmFsVXMpIHJldHVybjsgIC8vIG5vLW9wCgogIGlmIChzZXRTYW1wbGVJbnRlcnZhbChpbnRlcnZhbFVzKSkgewogICAgY3VycmVudEludGVydmFsVXMgID0gaW50ZXJ2YWxVczsKICAgIGN1cnJlbnRNb3Rpb25TdGF0ZSA9IHN0YXRlOwoKICAgICNpZiBTRVJJQUxfREVCVUcKICAgIFNlcmlhbC5wcmludCgiW0FkYXB0aXZlUmF0ZV0gU3dpdGNoZWQgdG8gIik7CiAgICBTZXJpYWwucHJpbnQoMTAwMDAwMFVMIC8gaW50ZXJ2YWxVcyk7CiAgICBTZXJpYWwucHJpbnQoIiBIeiDigJQgbW90aW9uIHN0YXRlOiAiKTsKICAgIFNlcmlhbC5wcmludGxuKChzdGF0ZSA9PSBNT1RJT05fQUNUSVZFKSA/ICJBQ1RJVkUiIDogIklETEUiKTsKICAgICNlbmRpZgogIH0gZWxzZSB7CiAgICBTZXJpYWwucHJpbnRsbigiV0FSTjogc2V0U2FtcGxlSW50ZXJ2YWwoKSBmYWlsZWQg4oCUIHN0YXlpbmcgYXQgY3VycmVudCByYXRlIik7CiAgfQp9CgovLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLy8gU0VUVVAKLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cgp2b2lkIHNldHVwKCkgewogICNpZiBTRVJJQUxfREVCVUcKICBTZXJpYWwuYmVnaW4oMTE1MjAwKTsKICAvLyBXYWl0IHVwIHRvIDMgcyBmb3IgVVNCIHNlcmlhbCAob21pdCB0aGlzIHdhaXQgaW4gYmF0dGVyeS1vbmx5IGRlcGxveW1lbnRzKQogIHdoaWxlICghU2VyaWFsICYmIG1pbGxpcygpIDwgMzAwMCk7CiAgU2VyaWFsLnByaW50bG4oIj09PSBSdW5uaW5nIE5vZGUgRmlybXdhcmUg4oCUIEFkYXB0aXZlIFNhbXBsZSBSYXRlID09PSIpOwogIFNlcmlhbC5wcmludCgiTm9kZTogIik7CiAgU2VyaWFsLnByaW50bG4oQkxFX0RFVklDRV9OQU1FKTsKICAjZW5kaWYKCiAgLy8g4pSA4pSAIFNlbnNvciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKICBpZiAoIWluaXRTZW5zb3IoKSkgewogICAgU2VyaWFsLnByaW50bG4oIkZBVEFMOiBTZW5zb3IgaW5pdCBmYWlsZWQg4oCUIGhhbHRpbmciKTsKICAgIHdoaWxlICgxKSB7IGRlbGF5KDEwMDApOyB9CiAgfQoKICAvLyBTdGFydCBpbiBpZGxlIG1vZGUgdG8gc2F2ZSBwb3dlciBkdXJpbmcgd2FybS11cCAvIEJMRSBwYWlyaW5nCiAgYXBwbHlJbnRlcnZhbChJTlRFUlZBTF9JRExFX1VTLCBNT1RJT05fSURMRSk7CgogICNpZiBTRVJJQUxfREVCVUcKICBTZXJpYWwucHJpbnRsbigiQk5PMDg1IGluaXRpYWxpemVkIGF0IDI1IEh6IChpZGxlKSIpOwogICNlbmRpZgoKICAvLyDilIDilIAgQkxFIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAogIGlmICghaW5pdEJMRShCTEVfREVWSUNFX05BTUUpKSB7CiAgICBTZXJpYWwucHJpbnRsbigiRkFUQUw6IEJMRSBpbml0IGZhaWxlZCDigJQgaGFsdGluZyIpOwogICAgd2hpbGUgKDEpIHsgZGVsYXkoMTAwMCk7IH0KICB9CgogIHNlc3Npb25TdGFydE1zID0gbWlsbGlzKCk7CiAgbGFzdEJhdHRlcnlNcyAgPSBtaWxsaXMoKTsKCiAgI2lmIFNFUklBTF9ERUJVRwogIFNlcmlhbC5wcmludGxuKCJTZXR1cCBjb21wbGV0ZSDigJQgd2FpdGluZyBmb3IgbW90aW9uLi4uIik7CiAgI2VuZGlmCn0KCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQovLyBMT09QCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKdm9pZCBsb29wKCkgewogIHVpbnQzMl90IG5vdyA9IG1pbGxpcygpOwoKICAvLyDilIDilIAgMS4gU2VydmljZSBCTEUgZXZlbnRzICYgaGFuZGxlIGNvbmZpZyB3cml0ZXMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAgcG9sbEJMRSgpOwoKICAvLyBIYW5kbGUgc2FtcGxlIHJhdGUgb3ZlcnJpZGUgZnJvbSBGbHV0dGVyIGFwcCAodmlhIGNvbmZpZ0NoYXIpCiAgdWludDhfdCBjb25maWdIeiA9IGNvbnN1bWVDb25maWdSZXF1ZXN0KCk7CiAgaWYgKGNvbmZpZ0h6ID09IDI1KSB7CiAgICBhcHBseUludGVydmFsKElOVEVSVkFMX0lETEVfVVMsIE1PVElPTl9JRExFKTsKICB9IGVsc2UgaWYgKGNvbmZpZ0h6ID09IDEwMCkgewogICAgYXBwbHlJbnRlcnZhbChJTlRFUlZBTF9SVU5OSU5HX1VTLCBNT1RJT05fQUNUSVZFKTsKICB9CgogIC8vIOKUgOKUgCAyLiBIYW5kbGUgQk5PMDg1IHJlc2V0IOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAogIC8vIChUaGUgQk5PMDg1IGNhbiBzZWxmLXJlc2V0IGFmdGVyIGEgc3Ryb25nIGltcGFjdCkKICBleHRlcm4gQWRhZnJ1aXRfQk5PMDh4IGJubzA4NTsgIC8vIGRlZmluZWQgaW4gc2Vuc29yLmNwcAogIC8vIFdlIHVzZSBhIGxpZ2h0d2VpZ2h0IHByb3h5OiBnZXRTZW5zb3JBbmdsZXMgaGFuZGxlcyB3YXNSZXNldCBpbnRlcm5hbGx5CiAgLy8gdmlhIHJlaW5pdFNlbnNvclJlcG9ydHMuIFRoaXMgaXMgaGFuZGxlZCBiZWxvdyBhZnRlciByZWFkaW5nLgoKICAvLyDilIDilIAgMy4gUmVhZCBzZW5zb3IgKG5vbi1ibG9ja2luZykg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAgU2Vuc29yQW5nbGVzIGFuZ2xlczsKICBib29sIG5ld1NhbXBsZSA9IGdldFNlbnNvckFuZ2xlcyhhbmdsZXMpOwoKICAvLyDilIDilIAgNC4gTW90aW9uIGRldGVjdGlvbiDigJQgdXBkYXRlIGV2ZXJ5IHRpbWUgd2UgaGF2ZSBhY2NlbCBkYXRhIOKUgOKUgAogIGZsb2F0IGFjY2VsTWFnID0gMC4wZjsKICBib29sIGhhc0FjY2VsICA9IGdldExpbmVhckFjY2VsTWFnbml0dWRlKGFjY2VsTWFnKTsKCiAgaWYgKGhhc0FjY2VsKSB7CiAgICBib29sIHN0YXRlQ2hhbmdlZCA9IG1vdGlvbkRldGVjdG9yLnVwZGF0ZShhY2NlbE1hZyk7CgogICAgaWYgKHN0YXRlQ2hhbmdlZCkgewogICAgICBNb3Rpb25TdGF0ZSBuZXdTdGF0ZSA9IG1vdGlvbkRldGVjdG9yLmdldFN0YXRlKCk7CiAgICAgIGlmIChuZXdTdGF0ZSA9PSBNT1RJT05fQUNUSVZFKSB7CiAgICAgICAgYXBwbHlJbnRlcnZhbChJTlRFUlZBTF9SVU5OSU5HX1VTLCBNT1RJT05fQUNUSVZFKTsKICAgICAgfSBlbHNlIHsKICAgICAgICBhcHBseUludGVydmFsKElOVEVSVkFMX0lETEVfVVMsIE1PVElPTl9JRExFKTsKICAgICAgfQogICAgfQogIH0KCiAgLy8g4pSA4pSAIDUuIFNlbmQgZGF0YSBvdmVyIEJMRSBpZiBjb25uZWN0ZWQgYW5kIG5ldyBzYW1wbGUgYXZhaWxhYmxlIOKUgOKUgAogIGlmIChuZXdTYW1wbGUgJiYgaXNCTEVDb25uZWN0ZWQoKSkgewogICAgc2VuZFNlbnNvckRhdGEoYW5nbGVzLCBzZXNzaW9uU3RhcnRNcyk7CgogICAgI2lmIFNFUklBTF9ERUJVRwogICAgLy8gTGlnaHR3ZWlnaHQgZGVidWcgcHJpbnQg4oCUIHRocm90dGxlIHRvIG9uY2UgcGVyIHNlY29uZCB0byBhdm9pZAogICAgLy8gZmxvb2RpbmcgdGhlIHNlcmlhbCBwb3J0IGF0IDEwMCBIegogICAgc3RhdGljIHVpbnQzMl90IGxhc3REZWJ1Z01zID0gMDsKICAgIGlmIChub3cgLSBsYXN0RGVidWdNcyA+PSAxMDAwKSB7CiAgICAgIGxhc3REZWJ1Z01zID0gbm93OwogICAgICBTZXJpYWwucHJpbnQoIlsiKTsKICAgICAgU2VyaWFsLnByaW50KG1vdGlvbkRldGVjdG9yLmdldFN0YXRlTGFiZWwoKSk7CiAgICAgIFNlcmlhbC5wcmludCgiXSAiKTsKICAgICAgU2VyaWFsLnByaW50KDEwMDAwMDBVTCAvIGN1cnJlbnRJbnRlcnZhbFVzKTsKICAgICAgU2VyaWFsLnByaW50KCJIeiB8IHJvbGw9Iik7CiAgICAgIFNlcmlhbC5wcmludChhbmdsZXMucm9sbCwgMSk7CiAgICAgIFNlcmlhbC5wcmludCgiIHBpdGNoPSIpOwogICAgICBTZXJpYWwucHJpbnQoYW5nbGVzLnBpdGNoLCAxKTsKICAgICAgU2VyaWFsLnByaW50KCIgeWF3PSIpOwogICAgICBTZXJpYWwucHJpbnRsbihhbmdsZXMueWF3LCAxKTsKICAgIH0KICAgICNlbmRpZgogIH0KCiAgLy8g4pSA4pSAIDYuIEJhdHRlcnkgdXBkYXRlIGV2ZXJ5IDEwIHNlY29uZHMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiAgaWYgKG5vdyAtIGxhc3RCYXR0ZXJ5TXMgPj0gQkFUVEVSWV9SRUFEX0lOVEVSVkFMX01TKSB7CiAgICBsYXN0QmF0dGVyeU1zID0gbm93OwogICAgdWludDhfdCBwY3QgPSByZWFkQmF0dGVyeVBlcmNlbnQoKTsKICAgIHVwZGF0ZUJhdHRlcnkocGN0KTsKCiAgICAjaWYgU0VSSUFMX0RFQlVHCiAgICBTZXJpYWwucHJpbnQoIltCYXR0ZXJ5XSAiKTsKICAgIFNlcmlhbC5wcmludChwY3QpOwogICAgU2VyaWFsLnByaW50bG4oIiUiKTsKICAgICNlbmRpZgogIH0KCiAgLy8g4pSA4pSAIDcuIFlpZWxkIOKAlCBuUkY1Mjg0MCBCTEUgc3RhY2sgbmVlZHMgY29vcGVyYXRpdmUgc2NoZWR1bGluZyDilIDilIAKICAvLyBEbyBub3QgYWRkIGxvbmcgZGVsYXkoKSBjYWxscyBpbiB0aGUgbG9vcDsgQkxFIGV2ZW50cyBtdXN0IGJlCiAgLy8gc2VydmljZWQgZnJlcXVlbnRseS4gVGhlIEJOTzA4NSByYXRlIGNvbnRyb2xzIHRoZSBlZmZlY3RpdmUKICAvLyBkYXRhIG91dHB1dCBmcmVxdWVuY3kg4oCUIHRoZSBsb29wIGl0c2VsZiBydW5zIGFzIGZhc3QgYXMgcG9zc2libGUuCn0K"}, {"name": "sensor.cpp", "type": "text", "content": "// sensor.cpp \u2014 BNO085 driver implementation\n// Wearable Sport Monitor \u2014 Running Node\n//\n// Uses 9-axis ARVR_STABILIZED_RV for drift-free yaw (critical for\n// hip rotation tracking in running). Never uses GAME_ROTATION_VECTOR.\n\n#include \"sensor.h\"\n#include <Wire.h>\n#include <Adafruit_BNO08x.h>\n#include <sh2.h>\n#include <sh2_SensorValue.h>\n\n// BNO085 I2C address (SA0 pin tied to GND on Adafruit breakout #4754)\n#define BNO085_ADDR  0x4A\n\n// Internal Adafruit driver object (-1 = no hardware reset pin wired)\nstatic Adafruit_BNO08x bno085(-1);\n\n// Shared sensor value buffer\nstatic sh2_SensorValue_t sensorValue;\n\n// Track the last interval that was sent to the sensor\nstatic uint32_t currentIntervalUs = 10000;  // default 100 Hz\n\n// ------------------------------------------------------------------\n// Internal helper: enable both reports at a given interval\n// ------------------------------------------------------------------\nstatic bool enableReports(uint32_t intervalUs) {\n  // 9-axis rotation vector with AR/VR stabilization \u2014 includes magnetometer\n  // This is mandatory: provides drift-free yaw for hip/ankle rotation in running\n  if (!bno085.enableReport(SH2_ARVR_STABILIZED_RV, intervalUs)) {\n    Serial.println(\"ERROR: Could not enable SH2_ARVR_STABILIZED_RV\");\n    return false;\n  }\n\n  // Linear acceleration (gravity subtracted) \u2014 used for motion detection\n  // and impact analysis. Allow a small tolerance: use same interval.\n  if (!bno085.enableReport(SH2_LINEAR_ACCELERATION, intervalUs)) {\n    Serial.println(\"WARN: Could not enable SH2_LINEAR_ACCELERATION\");\n    // Non-fatal \u2014 motion detection will still work via quaternion changes\n  }\n\n  currentIntervalUs = intervalUs;\n  return true;\n}\n\n// ------------------------------------------------------------------\n// initSensor\n// ------------------------------------------------------------------\nbool initSensor() {\n  // Fast Mode I2C \u2014 required for reliable 100 Hz operation over I2C\n  Wire.begin();\n  Wire.setClock(400000);\n\n  // Give BNO085 time to complete internal boot sequence\n  delay(100);\n\n  if (!bno085.begin_I2C(BNO085_ADDR)) {\n    Serial.println(\"ERROR: BNO085 not found at 0x4A \u2014 check wiring (SDA\u2192D4, SCL\u2192D5)\");\n    return false;\n  }\n\n  // Allow sensor firmware to stabilize after begin\n  delay(500);\n\n  return enableReports(currentIntervalUs);\n}\n\n// ------------------------------------------------------------------\n// reinitSensorReports \u2014 call after bno085.wasReset()\n// ------------------------------------------------------------------\nbool reinitSensorReports(uint32_t intervalUs) {\n  Serial.println(\"BNO085 was reset \u2014 re-enabling reports\");\n  return enableReports(intervalUs);\n}\n\n// ------------------------------------------------------------------\n// setSampleInterval \u2014 change report rate on the fly\n// ------------------------------------------------------------------\nbool setSampleInterval(uint32_t intervalUs) {\n  if (intervalUs == currentIntervalUs) return true;  // no-op\n  return enableReports(intervalUs);\n}\n\n// ------------------------------------------------------------------\n// getSensorAngles\n// ------------------------------------------------------------------\nbool getSensorAngles(SensorAngles& out) {\n  if (!bno085.getSensorEvent(&sensorValue)) {\n    return false;  // No new data ready yet\n  }\n\n  if (sensorValue.sensorId == SH2_ARVR_STABILIZED_RV) {\n    // Extract quaternion components\n    out.qw = sensorValue.un.arvrStabilizedRV.real;\n    out.qx = sensorValue.un.arvrStabilizedRV.i;\n    out.qy = sensorValue.un.arvrStabilizedRV.j;\n    out.qz = sensorValue.un.arvrStabilizedRV.k;\n\n    // Convert quaternion to Euler angles (degrees)\n    // Roll (rotation around X)\n    float sinr_cosp = 2.0f * (out.qw * out.qx + out.qy * out.qz);\n    float cosr_cosp = 1.0f - 2.0f * (out.qx * out.qx + out.qy * out.qy);\n    out.roll = atan2f(sinr_cosp, cosr_cosp) * 180.0f / M_PI;\n\n    // Pitch (rotation around Y)\n    float sinp = 2.0f * (out.qw * out.qy - out.qz * out.qx);\n    out.pitch = (fabsf(sinp) >= 1.0f)\n                  ? copysignf(90.0f, sinp)\n                  : asinf(sinp) * 180.0f / M_PI;\n\n    // Yaw (rotation around Z \u2014 requires magnetometer, provided by ARVR_STABILIZED_RV)\n    float siny_cosp = 2.0f * (out.qw * out.qz + out.qx * out.qy);\n    float cosy_cosp = 1.0f - 2.0f * (out.qy * out.qy + out.qz * out.qz);\n    out.yaw = atan2f(siny_cosp, cosy_cosp) * 180.0f / M_PI;\n\n    out.timestamp_ms = millis();\n\n    // Zero out accel fields; they may be overwritten by the next event\n    out.accel_x = 0.0f;\n    out.accel_y = 0.0f;\n    out.accel_z = 0.0f;\n\n    return true;\n  }\n\n  if (sensorValue.sensorId == SH2_LINEAR_ACCELERATION) {\n    // Update accel fields on the existing out struct is not possible here\n    // (no reference). This is handled separately via getLinearAccelMagnitude().\n    return false;\n  }\n\n  return false;\n}\n\n// ------------------------------------------------------------------\n// getLinearAccelMagnitude \u2014 lightweight read for motion detector\n// ------------------------------------------------------------------\nbool getLinearAccelMagnitude(float& magnitude) {\n  if (!bno085.getSensorEvent(&sensorValue)) {\n    return false;\n  }\n\n  if (sensorValue.sensorId == SH2_LINEAR_ACCELERATION) {\n    float ax = sensorValue.un.linearAcceleration.x;\n    float ay = sensorValue.un.linearAcceleration.y;\n    float az = sensorValue.un.linearAcceleration.z;\n    magnitude = sqrtf(ax * ax + ay * ay + az * az);\n    return true;\n  }\n\n  return false;\n}\n"}, {"name": "sensor.h", "type": "text", "content": "// sensor.h \u2014 Sensor abstraction interface for BNO085 IMU\n// Wearable Sport Monitor \u2014 Running Node\n// Adaptive sample rate: 100Hz (active) / 25Hz (idle)\n//\n// This interface is hardware-independent. Swapping the BNO085 for a\n// different IMU only requires changing sensor.cpp, not this header.\n\n#pragma once\n\n#include <Arduino.h>\n\n// ------------------------------------------------------------------\n// Sensor data struct \u2014 output of getSensorAngles()\n// ------------------------------------------------------------------\nstruct SensorAngles {\n  float roll;          // degrees \u2014 rotation around X axis\n  float pitch;         // degrees \u2014 rotation around Y axis\n  float yaw;           // degrees \u2014 rotation around Z axis (needs magnetometer)\n  float qw, qx, qy, qz;  // raw quaternion (9-axis, ARVR stabilized)\n  float accel_x;       // m/s\u00b2 linear acceleration (gravity removed)\n  float accel_y;\n  float accel_z;\n  uint32_t timestamp_ms;\n};\n\n// ------------------------------------------------------------------\n// Motion state enum used by adaptive sampling\n// ------------------------------------------------------------------\nenum MotionState {\n  MOTION_IDLE,    // Athlete is still \u2014 sample at SAMPLE_RATE_IDLE_HZ\n  MOTION_ACTIVE   // Athlete is moving \u2014 sample at SAMPLE_RATE_RUNNING_HZ\n};\n\n// ------------------------------------------------------------------\n// Public API\n// ------------------------------------------------------------------\n\n// Initialize I2C and BNO085. Returns true on success.\nbool initSensor();\n\n// Re-enable sensor reports without re-initializing I2C.\n// Call this after bno085.wasReset() returns true.\nbool reinitSensorReports(uint32_t intervalUs);\n\n// Read the latest sensor event.\n// Returns true if a new sample was available and out was populated.\nbool getSensorAngles(SensorAngles& out);\n\n// Change the BNO085 report interval on the fly (microseconds).\n// Used by the adaptive rate logic to switch between 100Hz and 25Hz.\nbool setSampleInterval(uint32_t intervalUs);\n\n// Read the raw linear acceleration magnitude (m/s\u00b2) without a full\n// getSensorAngles() call \u2014 used by the motion detector.\nbool getLinearAccelMagnitude(float& magnitude);\n"}], "grading": null}, {"id": "eval-3-adaptive-sample-rate-without_skill", "prompt": "Quiero modificar el firmware de running para que el nodo detecte autom\u00e1ticamente cuando el atleta est\u00e1 quieto y baje la frecuencia de muestreo a 25Hz para ahorrar bater\u00eda, y suba a 100Hz cuando detecta movimiento.", "eval_id": 3, "outputs": [], "grading": null}], "previous_feedback": {}, "previous_outputs": {}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

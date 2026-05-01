@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>ARC — Assets</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #fafafa;
+    color: #0a0a0a;
+    padding: 64px 80px 120px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 1px solid #e6e6e6; padding-bottom: 32px; margin-bottom: 48px;
+  }
+  h1 { font-size: 48px; font-weight: 200; letter-spacing: -0.02em; margin: 0; line-height: 1; }
+  .crumb { font-size: 11px; font-weight: 500; letter-spacing: 0.32em; text-transform: uppercase; color: #999; margin-bottom: 12px; }
+  .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #666; text-align: right; line-height: 1.8; }
+
+  section { margin-bottom: 64px; }
+  h2 { font-size: 14px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 24px; color: #0a0a0a; }
+  .group {
+    background: #fff; border: 1px solid #e6e6e6;
+    margin-bottom: 16px;
+  }
+  .group-head {
+    display: grid; grid-template-columns: 200px 1fr auto; gap: 24px; align-items: center;
+    padding: 20px 24px; border-bottom: 1px solid #f0f0f0;
+  }
+  .code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #666; letter-spacing: 0.06em; }
+  .name { font-size: 16px; font-weight: 400; }
+  .desc { font-size: 12px; color: #666; line-height: 1.5; }
+
+  .preview-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .preview {
+    aspect-ratio: 16/7;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px; position: relative;
+  }
+  .preview.light { background: #fff; }
+  .preview.dark  { background: #0a0a0a; }
+  .preview img { max-width: 60%; max-height: 70%; object-fit: contain; }
+  .preview .tag {
+    position: absolute; top: 12px; left: 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .preview.light .tag { color: #999; }
+  .preview.dark .tag  { color: #666; }
+
+  .files {
+    padding: 16px 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 24px;
+  }
+  .files a {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: #0a0a0a; text-decoration: none;
+    border-bottom: 1px solid #f4f4f4;
+  }
+  .files a:hover { color: #d6ff00; background: #0a0a0a; padding-left: 8px; padding-right: 8px; }
+  .files a:hover .size { color: #fff; }
+  .size { color: #999; font-size: 10px; }
+
+  pre {
+    background: #0a0a0a; color: #d6ff00; padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7;
+    overflow-x: auto; margin: 12px 0 0;
+  }
+  pre .c { color: #666; }
+  pre .k { color: #fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="crumb">Brand assets</div>
+      <h1>Downloads</h1>
+    </div>
+    <div class="meta">
+      ARC v1.0<br/>
+      8 SVG · 36 PNG<br/>
+      Tight viewBox · ready to use
+    </div>
+  </header>
+
+  <!-- ARC-01 — Wordmark integrado -->
+  <section>
+    <h2>ARC-01 — Wordmark integrado</h2>
+    <div class="group">
+      <div class="group-head">
+        <span class="code">ARC-01 · primario</span>
+        <span class="desc">El símbolo + RC. Forma principal. Úsala siempre que sea posible.</span>
+      </div>
+      <div class="preview-row">
+        <div class="preview light"><span class="tag">BLACK</span><img src="assets/svg/arc-integrated-black.svg" alt="ARC integrated black"/></div>
+        <div class="preview dark"><span class="tag">WHITE</span><img src="assets/svg/arc-integrated-white.svg" alt="ARC integrated white"/></div>
+      </div>
+      <div class="files">
+        <a href="assets/svg/arc-integrated-black.svg" download>arc-integrated-black.svg <span class="size">SVG</span></a>
+        <a href="assets/svg/arc-integrated-white.svg" download>arc-integrated-white.svg <span class="size">SVG</span></a>
+        <a href="assets/png/arc-integrated-black-625.png" download>arc-integrated-black-625.png <span class="size">2x</span></a>
+        <a href="assets/png/arc-integrated-white-625.png" download>arc-integrated-white-625.png <span class="size">2x</span></a>
+        <a href="assets/png/arc-integrated-black-1250.png" download>arc-integrated-black-1250.png <span class="size">4x</span></a>
+        <a href="assets/png/arc-integrated-white-1250.png" download>arc-integrated-white-1250.png <span class="size">4x</span></a>
+        <a href="assets/png/arc-integrated-black-2501.png" download>arc-integrated-black-2501.png <span class="size">8x</span></a>
+        <a href="assets/png/arc-integrated-white-2501.png" download>arc-integrated-white-2501.png <span class="size">8x</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARC-02 — Símbolo solo -->
+  <section>
+    <h2>ARC-02 — Símbolo solo</h2>
+    <div class="group">
+      <div class="group-head">
+        <span class="code">ARC-02 · display</span>
+        <span class="desc">El arco con punto, sin letras. Para favicon, app icon, sensor físico, hero shots.</span>
+      </div>
+      <div class="preview-row">
+        <div class="preview light"><span class="tag">BLACK</span><img src="assets/svg/arc-symbol-black.svg" alt="ARC symbol black" style="max-height:60%"/></div>
+        <div class="preview dark"><span class="tag">WHITE</span><img src="assets/svg/arc-symbol-white.svg" alt="ARC symbol white" style="max-height:60%"/></div>
+      </div>
+      <div class="files">
+        <a href="assets/svg/arc-symbol-black.svg" download>arc-symbol-black.svg <span class="size">SVG</span></a>
+        <a href="assets/svg/arc-symbol-white.svg" download>arc-symbol-white.svg <span class="size">SVG</span></a>
+        <a href="assets/png/arc-symbol-black-96.png" download>arc-symbol-black-96.png <span class="size">2x</span></a>
+        <a href="assets/png/arc-symbol-white-96.png" download>arc-symbol-white-96.png <span class="size">2x</span></a>
+        <a href="assets/png/arc-symbol-black-192.png" download>arc-symbol-black-192.png <span class="size">4x</span></a>
+        <a href="assets/png/arc-symbol-white-192.png" download>arc-symbol-white-192.png <span class="size">4x</span></a>
+        <a href="assets/png/arc-symbol-black-384.png" download>arc-symbol-black-384.png <span class="size">8x</span></a>
+        <a href="assets/png/arc-symbol-white-384.png" download>arc-symbol-white-384.png <span class="size">8x</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARC-03 — Wordmark sin símbolo -->
+  <section>
+    <h2>ARC-03 — Wordmark sin símbolo</h2>
+    <div class="group">
+      <div class="group-head">
+        <span class="code">ARC-03 · editorial</span>
+        <span class="desc">Solo el texto "ARC" en Inter ExtraLight, outlined a paths. Para títulos largos, body copy, prensa.</span>
+      </div>
+      <div class="preview-row">
+        <div class="preview light"><span class="tag">BLACK</span><img src="assets/svg/arc-wordmark-black.svg" alt="ARC wordmark black"/></div>
+        <div class="preview dark"><span class="tag">WHITE</span><img src="assets/svg/arc-wordmark-white.svg" alt="ARC wordmark white"/></div>
+      </div>
+      <div class="files">
+        <a href="assets/svg/arc-wordmark-black.svg" download>arc-wordmark-black.svg <span class="size">SVG</span></a>
+        <a href="assets/svg/arc-wordmark-white.svg" download>arc-wordmark-white.svg <span class="size">SVG</span></a>
+        <a href="assets/png/arc-wordmark-black-602.png" download>arc-wordmark-black-602.png <span class="size">2x</span></a>
+        <a href="assets/png/arc-wordmark-white-602.png" download>arc-wordmark-white-602.png <span class="size">2x</span></a>
+        <a href="assets/png/arc-wordmark-black-1204.png" download>arc-wordmark-black-1204.png <span class="size">4x</span></a>
+        <a href="assets/png/arc-wordmark-white-1204.png" download>arc-wordmark-white-1204.png <span class="size">4x</span></a>
+        <a href="assets/png/arc-wordmark-black-2408.png" download>arc-wordmark-black-2408.png <span class="size">8x</span></a>
+        <a href="assets/png/arc-wordmark-white-2408.png" download>arc-wordmark-white-2408.png <span class="size">8x</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Favicon -->
+  <section>
+    <h2>Favicon · App icon</h2>
+    <div class="group">
+      <div class="group-head">
+        <span class="code">favicon · transparent</span>
+        <span class="desc">Símbolo aislado en cuadrado 32×32. Transparente — para uso en cualquier fondo.</span>
+      </div>
+      <div class="preview-row">
+        <div class="preview light"><span class="tag">16PX</span><img src="assets/png/arc-favicon-16.png" alt="" style="image-rendering:pixelated;max-width:none;width:64px"/></div>
+        <div class="preview light"><span class="tag">512PX</span><img src="assets/svg/arc-favicon.svg" alt="" style="max-height:50%"/></div>
+      </div>
+      <div class="files">
+        <a href="assets/svg/arc-favicon.svg" download>arc-favicon.svg <span class="size">SVG</span></a>
+        <a href="assets/png/arc-favicon-16.png" download>arc-favicon-16.png <span class="size">favicon</span></a>
+        <a href="assets/png/arc-favicon-32.png" download>arc-favicon-32.png <span class="size">favicon</span></a>
+        <a href="assets/png/arc-favicon-64.png" download>arc-favicon-64.png <span class="size">browser</span></a>
+        <a href="assets/png/arc-favicon-128.png" download>arc-favicon-128.png <span class="size">app</span></a>
+        <a href="assets/png/arc-favicon-256.png" download>arc-favicon-256.png <span class="size">app</span></a>
+        <a href="assets/png/arc-favicon-512.png" download>arc-favicon-512.png <span class="size">retina</span></a>
+      </div>
+    </div>
+    <div class="group">
+      <div class="group-head">
+        <span class="code">favicon · square</span>
+        <span class="desc">Símbolo blanco sobre cuadrado negro. Para iOS/Android app icon, donde el sistema requiere fondo opaco.</span>
+      </div>
+      <div class="preview-row">
+        <div class="preview light"><span class="tag">16PX</span><img src="assets/png/arc-favicon-square-16.png" alt="" style="image-rendering:pixelated;max-width:none;width:64px"/></div>
+        <div class="preview light"><span class="tag">512PX</span><img src="assets/svg/arc-favicon-square.svg" alt="" style="max-height:60%"/></div>
+      </div>
+      <div class="files">
+        <a href="assets/svg/arc-favicon-square.svg" download>arc-favicon-square.svg <span class="size">SVG</span></a>
+        <a href="assets/png/arc-favicon-square-16.png" download>arc-favicon-square-16.png <span class="size">favicon</span></a>
+        <a href="assets/png/arc-favicon-square-32.png" download>arc-favicon-square-32.png <span class="size">favicon</span></a>
+        <a href="assets/png/arc-favicon-square-64.png" download>arc-favicon-square-64.png <span class="size">browser</span></a>
+        <a href="assets/png/arc-favicon-square-128.png" download>arc-favicon-square-128.png <span class="size">app</span></a>
+        <a href="assets/png/arc-favicon-square-256.png" download>arc-favicon-square-256.png <span class="size">app</span></a>
+        <a href="assets/png/arc-favicon-square-512.png" download>arc-favicon-square-512.png <span class="size">retina</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Usage -->
+  <section id="usage">
+    <h2>Cómo usarlo</h2>
+    <div class="group" style="padding: 24px 28px;">
+      <p style="font-size:13px;color:#444;line-height:1.7;margin:0 0 8px"><strong>Web (HTML/JSX):</strong></p>
+<pre><span class="c">&lt;!-- header logo --&gt;</span>
+&lt;<span class="k">img</span> src=<span style="color:#fff">"/assets/svg/arc-integrated-black.svg"</span> alt=<span style="color:#fff">"ARC"</span> height=<span style="color:#fff">"32"</span>&gt;
+
+<span class="c">&lt;!-- favicon --&gt;</span>
+&lt;<span class="k">link</span> rel=<span style="color:#fff">"icon"</span> type=<span style="color:#fff">"image/svg+xml"</span> href=<span style="color:#fff">"/assets/svg/arc-favicon.svg"</span>&gt;
+&lt;<span class="k">link</span> rel=<span style="color:#fff">"apple-touch-icon"</span> href=<span style="color:#fff">"/assets/png/arc-favicon-square-256.png"</span>&gt;</pre>
+      <p style="font-size:13px;color:#666;line-height:1.7;margin:24px 0 0">
+        Los SVG son <strong>self-contained</strong>: las letras están convertidas a paths (outlined),
+        así que no dependen de ninguna fuente externa. Funcionan idénticos en cualquier app, browser,
+        o entorno (Figma, native apps) sin necesidad de cargar Inter.
+      </p>
+    </div>
+  </section>
+</div>
+</body>
+</html>

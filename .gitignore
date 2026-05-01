@@ -1,0 +1,10 @@
+app/
+firmware/
+
+# macOS
+.DS_Store
+
+# Claude / IDE
+.vscode/
+.idea/
+

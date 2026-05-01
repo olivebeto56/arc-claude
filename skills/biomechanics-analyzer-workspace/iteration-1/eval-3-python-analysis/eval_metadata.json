@@ -1,0 +1,12 @@
+{
+  "eval_id": 3, "eval_name": "python-offline-analysis",
+  "prompt": "Crea analyze_session.py para análisis offline de sesiones del wearable.",
+  "assertions": [
+    {"id":"a1","text":"Usa scipy.signal.find_peaks para detección de impactos con threshold y min_distance configurables"},
+    {"id":"a2","text":"Calcula cadencia rolling de 10 pasos (no cadencia global de toda la sesión)"},
+    {"id":"a3","text":"Genera gráfica de 3 paneles con sharex=True"},
+    {"id":"a4","text":"Panel de cadencia tiene líneas de referencia a 160 y 180 spm"},
+    {"id":"a5","text":"Itera sobre múltiples node_ids en el CSV"},
+    {"id":"a6","text":"Los parámetros clave (threshold, sample_rate, window) son constantes configurables al inicio del script"}
+  ]
+}

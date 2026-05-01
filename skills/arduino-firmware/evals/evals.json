@@ -1,0 +1,23 @@
+{
+  "skill_name": "arduino-firmware",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Genera el firmware base completo para el nodo del tobillo izquierdo en running. Necesito los archivos .ino, sensor.h, sensor.cpp, ble_service.h y ble_service.cpp. Debe usar el BNO085 a 100Hz, mandar cuaterniones por BLE con notificaciones, y leer el nivel de batería.",
+      "expected_output": "5 archivos Arduino separados: .ino principal con setup/loop, sensor.h/.cpp con la abstracción getSensorAngles() usando ARVR_STABILIZED_RV (9 ejes), ble_service.h/.cpp con GATT service UUID, characteristic de datos (notify, 20 bytes empaquetados) y characteristic de batería (read). Comentarios en inglés. Lista de librerías requeridas.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "El BNO085 no me responde por I2C. Cuando corro el sketch me sale 'BNO085 not found at 0x4A' en el serial monitor. ¿Qué puede estar pasando y cómo lo diagnostico? Dame código de diagnóstico.",
+      "expected_output": "Explicación de las causas más probables (dirección I2C, cables invertidos, timing), código de sketch de diagnóstico I2C que escanea el bus y verifica la conexión al BNO085, con Wire.setClock(400000) y delay(100) post-Wire.begin(), referencias al pinout del XIAO (D4/D5).",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Quiero modificar el firmware de running para que el nodo detecte automáticamente cuando el atleta está quieto y baje la frecuencia de muestreo a 25Hz para ahorrar batería, y suba a 100Hz cuando detecta movimiento.",
+      "expected_output": "Código que implementa detección de actividad usando el acelerómetro lineal (magnitud del vector), umbral configurable, función changeReportRate() que llama enableReport() con el nuevo intervalo, y lógica de histéresis para evitar cambios frecuentes de frecuencia. Integrado en el loop principal con manejo del reset del BNO085.",
+      "files": []
+    }
+  ]
+}

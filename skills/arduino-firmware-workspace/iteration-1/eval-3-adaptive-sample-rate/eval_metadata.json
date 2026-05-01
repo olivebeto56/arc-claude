@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "adaptive-sample-rate",
+  "prompt": "Quiero modificar el firmware de running para que el nodo detecte automáticamente cuando el atleta está quieto y baje la frecuencia de muestreo a 25Hz para ahorrar batería, y suba a 100Hz cuando detecta movimiento.",
+  "assertions": [
+    {"id": "a1", "text": "Usa SH2_LINEAR_ACCELERATION para detectar movimiento (no solo los ángulos del cuaternión)"},
+    {"id": "a2", "text": "Implementa histéresis (dos umbrales distintos para activar vs desactivar)"},
+    {"id": "a3", "text": "Usa enableReport() con el nuevo intervalo para cambiar la frecuencia en runtime (sin reiniciar el sensor)"},
+    {"id": "a4", "text": "Los umbrales son constantes configurables (#define o const), no hardcoded en el código"},
+    {"id": "a5", "text": "Mantiene SH2_ARVR_STABILIZED_RV (9 ejes) a ambas frecuencias, no cambia a GAME_ROTATION_VECTOR"}
+  ]
+}

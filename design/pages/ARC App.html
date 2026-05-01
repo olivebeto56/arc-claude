@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ARC — App Design</title>
+  <style>
+    body { margin: 0; background: #f0eee9; }
+  </style>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Tokens & atoms -->
+  <script src="screens/tokens.js"></script>
+  <script type="text/babel" src="screens/atoms.jsx"></script>
+  <script type="text/babel" src="screens/map.jsx"></script>
+
+  <!-- iOS frame & design canvas -->
+  <script type="text/babel" src="screens/ios-frame.jsx"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+
+  <!-- Screens -->
+  <script type="text/babel" src="screens/screens-onboarding.jsx"></script>
+  <script type="text/babel" src="screens/screens-live.jsx"></script>
+  <script type="text/babel" src="screens/screens-post.jsx"></script>
+
+  <!-- App -->
+  <script type="text/babel">
+    const PHONE_W = 393;
+    const PHONE_H = 852;
+
+    // Wrap a screen in an iOS device frame with a dark status bar.
+    // Screens internally have paddingTop: 56 which clears the status bar.
+    function Phone({ children }) {
+      return (
+        <IOSDevice width={PHONE_W} height={PHONE_H} dark>
+          {children}
+        </IOSDevice>
+      );
+    }
+
+    // Staggered mount — render artboards in batches via setTimeout so first paint
+    // isn't blocked by all 14 phones at once.
+    let __renderIdx = 0;
+    function Staggered({ children }) {
+      const idx = React.useMemo(() => __renderIdx++, []);
+      const [shown, setShown] = React.useState(idx < 3);
+      React.useEffect(() => {
+        if (shown) return;
+        const t = setTimeout(() => setShown(true), 50 + idx * 80);
+        return () => clearTimeout(t);
+      }, [shown, idx]);
+      return shown ? children : (
+        <div style={{
+          width: '100%', height: '100%', background: '#0A0A0A',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'rgba(255,255,255,0.25)', fontSize: 11, letterSpacing: '0.2em',
+        }}>···</div>
+      );
+    }
+
+    // Phone-in-artboard renderer. NOTE: must inline <DCArtboard> directly inside
+    // <DCSection> — DesignCanvas filters children by `type === DCArtboard` and
+    // wrapping it in another component opts out of focus/reorder/render.
+    const phone = (Screen) => (
+      <div style={{
+        width: '100%', height: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#0A0A0A',
+      }}>
+        <Staggered>
+          <Phone><Screen/></Phone>
+        </Staggered>
+      </div>
+    );
+
+    function App() {
+      const W = PHONE_W + 12, H = PHONE_H + 12;
+      return (
+        <DesignCanvas
+          title="ARC · Sport Monitor"
+          subtitle="10 pantallas hi-fi · 3 variaciones de Home · 3 variaciones de Dashboard live"
+        >
+          <DCSection id="onboarding" title="0 · Onboarding"
+            subtitle="Splash → permisos → escaneo de bandas. Cubierto por el flow inicial.">
+            <DCArtboard id="splash"   label="Splash"          width={W} height={H}>{phone(ScreenSplash)}</DCArtboard>
+            <DCArtboard id="permisos" label="Permisos"        width={W} height={H}>{phone(ScreenPermisos)}</DCArtboard>
+            <DCArtboard id="scan"     label="Scan & Connect"  width={W} height={H}>{phone(ScreenScan)}</DCArtboard>
+          </DCSection>
+
+          <DCSection id="home" title="1 · Home"
+            subtitle="3 direcciones — 'Atlético' es la default. Mismas métricas, distinta jerarquía.">
+            <DCArtboard id="home-a" label="A · Atlético (default)" width={W} height={H}>{phone(ScreenHomeA)}</DCArtboard>
+            <DCArtboard id="home-b" label="B · Hero score"          width={W} height={H}>{phone(ScreenHomeB)}</DCArtboard>
+            <DCArtboard id="home-c" label="C · Editorial"           width={W} height={H}>{phone(ScreenHomeC)}</DCArtboard>
+          </DCSection>
+
+          <DCSection id="live" title="2 · Sesión en vivo"
+            subtitle="3 disposiciones del dashboard live + overlay de recomendación + pausa.">
+            <DCArtboard id="dash-a"    label="A · Mapa prominente"    width={W} height={H}>{phone(ScreenDashboardA)}</DCArtboard>
+            <DCArtboard id="dash-b"    label="B · Cards"              width={W} height={H}>{phone(ScreenDashboardB)}</DCArtboard>
+            <DCArtboard id="dash-c"    label="C · Hero metric"        width={W} height={H}>{phone(ScreenDashboardC)}</DCArtboard>
+            <DCArtboard id="recommend" label="Recomendación (overlay)" width={W} height={H}>{phone(ScreenRecommendation)}</DCArtboard>
+            <DCArtboard id="pause"     label="Pausa"                  width={W} height={H}>{phone(ScreenPause)}</DCArtboard>
+          </DCSection>
+
+          <DCSection id="post" title="3 · Post-sesión & auxiliares"
+            subtitle="Resumen, historial, ajustes.">
+            <DCArtboard id="summary"  label="Resumen"   width={W} height={H}>{phone(ScreenSummary)}</DCArtboard>
+            <DCArtboard id="history"  label="Historial" width={W} height={H}>{phone(ScreenHistory)}</DCArtboard>
+            <DCArtboard id="settings" label="Ajustes"   width={W} height={H}>{phone(ScreenSettings)}</DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

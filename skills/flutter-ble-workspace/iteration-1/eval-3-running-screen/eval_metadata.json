@@ -1,0 +1,13 @@
+{
+  "eval_id": 3,
+  "eval_name": "running-screen-dashboard",
+  "prompt": "Crea la pantalla principal de running (running_screen.dart) con dashboard en tiempo real. Debe mostrar: cadencia actual en spm, simetría L/R como barra bicolor, tiempo de contacto promedio, y una gráfica de cadencia de los últimos 30 segundos usando fl_chart. Usa tema oscuro deportivo.",
+  "assertions": [
+    {"id": "a1", "text": "Usa Consumer<SessionProvider> para escuchar cambios de estado"},
+    {"id": "a2", "text": "Muestra cadencia en spm de forma prominente (texto grande)"},
+    {"id": "a3", "text": "La barra de simetría cambia de color según el rango (verde 45-55%, naranja fuera)"},
+    {"id": "a4", "text": "Implementa LineChart de fl_chart para la gráfica de cadencia"},
+    {"id": "a5", "text": "Usa tema oscuro con color primario cyan (#00E5FF o similar)"},
+    {"id": "a6", "text": "Muestra la recomendación del provider cuando está disponible (banner o snackbar)"}
+  ]
+}

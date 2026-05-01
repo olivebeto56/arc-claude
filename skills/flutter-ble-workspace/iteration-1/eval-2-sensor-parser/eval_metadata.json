@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "sensor-parser-dart",
+  "prompt": "Necesito el archivo sensor_parser.dart completo que decodifique los paquetes BLE de 14-16 bytes que manda el nodo XIAO+BNO085. Los paquetes vienen en little-endian: 2 bytes timestamp uint16, luego 4 int16 de cuaternión escalados x10000, luego 3 int16 de aceleración en mili-g.",
+  "assertions": [
+    {"id": "a1", "text": "Usa ByteData con Endian.little para leer todos los campos"},
+    {"id": "a2", "text": "Escala el cuaternión dividiendo por 10000 (no 1000 ni otro valor)"},
+    {"id": "a3", "text": "Escala la aceleración multiplicando por 9.81/1000 para convertir mili-g a m/s²"},
+    {"id": "a4", "text": "Calcula ángulos de Euler (roll, pitch, yaw) desde el cuaternión con atan2/asin"},
+    {"id": "a5", "text": "Maneja paquetes de 14 bytes (sin accel_z) y 16 bytes (con accel_z) correctamente"},
+    {"id": "a6", "text": "Devuelve null o maneja errores graciosamente para paquetes inválidos (no lanza excepción)"}
+  ]
+}

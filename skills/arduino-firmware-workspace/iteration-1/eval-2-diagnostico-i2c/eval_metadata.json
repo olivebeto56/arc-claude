@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "eval_name": "diagnostico-i2c-bno085",
+  "prompt": "El BNO085 no me responde por I2C. Cuando corro el sketch me sale 'BNO085 not found at 0x4A' en el serial monitor. ¿Qué puede estar pasando y cómo lo diagnostico? Dame código de diagnóstico.",
+  "assertions": [
+    {"id": "a1", "text": "Menciona la dirección 0x4A como default y 0x4B como alternativa"},
+    {"id": "a2", "text": "Menciona Wire.setClock(400000) o fast mode I2C como solución"},
+    {"id": "a3", "text": "Menciona agregar delay después de Wire.begin() para el boot del sensor"},
+    {"id": "a4", "text": "Referencia los pines correctos del XIAO: SDA=D4, SCL=D5"},
+    {"id": "a5", "text": "Genera un sketch de diagnóstico (.ino) que escanea el bus I2C"}
+  ]
+}

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 100" fill="none" role="img" aria-label="ARC">
+  <title>ARC</title>
+  <path d="M8 70 Q37.5 -10 67 70" stroke="#ffffff" stroke-width="3" stroke-linecap="round"></path>
+  <circle cx="37.5" cy="58" r="3" fill="#ffffff"></circle>
+</svg>

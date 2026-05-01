@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "scan-screen-ble",
+  "prompt": "Genera la pantalla de escaneo BLE completa (scan_screen.dart) para la app de running. Debe mostrar una lista de nodos disponibles filtrados por el UUID del servicio del wearable, mostrar la intensidad de señal (RSSI) de cada uno, y tener un botón para conectar los dos nodos seleccionados en paralelo. Usa flutter_blue_plus y Provider.",
+  "assertions": [
+    {"id": "a1", "text": "Filtra por UUID de servicio '19B10000-...' en el escaneo, no por nombre de dispositivo"},
+    {"id": "a2", "text": "Muestra el RSSI de cada dispositivo descubierto"},
+    {"id": "a3", "text": "Usa Future.wait([...]) para conectar ambos nodos en paralelo"},
+    {"id": "a4", "text": "Usa StreamBuilder o Consumer<BleManager> (no setState puro para el estado BLE)"},
+    {"id": "a5", "text": "Incluye permisos Android/iOS necesarios en los comentarios o instrucciones"}
+  ]
+}

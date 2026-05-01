@@ -1,0 +1,14 @@
+{
+  "eval_id": 1,
+  "eval_name": "firmware-completo-running",
+  "prompt": "Genera el firmware base completo para el nodo del tobillo izquierdo en running. Necesito los archivos .ino, sensor.h, sensor.cpp, ble_service.h y ble_service.cpp. Debe usar el BNO085 a 100Hz, mandar cuaterniones por BLE con notificaciones, y leer el nivel de batería.",
+  "assertions": [
+    {"id": "a1", "text": "Genera exactamente 5 archivos: .ino, sensor.h, sensor.cpp, ble_service.h, ble_service.cpp"},
+    {"id": "a2", "text": "Usa SH2_ARVR_STABILIZED_RV (no GAME_ROTATION_VECTOR) para 9 ejes"},
+    {"id": "a3", "text": "Implementa la abstracción getSensorAngles() con struct SensorAngles"},
+    {"id": "a4", "text": "BLE usa notificaciones (BLENotify), no polling"},
+    {"id": "a5", "text": "El paquete BLE cabe en 20 bytes (usa int16_t empaquetados, no float)"},
+    {"id": "a6", "text": "Incluye Wire.setClock(400000) para I2C fast mode"},
+    {"id": "a7", "text": "Menciona las librerías requeridas y la URL del Board Manager del XIAO"}
+  ]
+}

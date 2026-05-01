@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Carcasa Wearable - AI Sport Monitor - Vista 3D</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; color: #eee; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+  #info {
+    position: absolute; top: 12px; left: 12px; z-index: 10;
+    background: rgba(0,0,0,0.75); padding: 14px 18px; border-radius: 10px;
+    font-size: 13px; line-height: 1.6; max-width: 280px; backdrop-filter: blur(8px);
+  }
+  #info h2 { font-size: 15px; margin-bottom: 6px; color: #7ec8e3; }
+  #info .dim { color: #f0a500; font-weight: 600; }
+  #controls {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 10;
+    display: flex; gap: 8px;
+  }
+  #controls button {
+    background: rgba(255,255,255,0.12); color: #eee; border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    transition: background 0.2s;
+  }
+  #controls button:hover { background: rgba(255,255,255,0.25); }
+  #controls button.active { background: rgba(126,200,227,0.35); border-color: #7ec8e3; }
+  #legend {
+    position: absolute; top: 12px; right: 12px; z-index: 10;
+    background: rgba(0,0,0,0.75); padding: 12px 16px; border-radius: 10px;
+    font-size: 12px; backdrop-filter: blur(8px);
+  }
+  #legend div { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+  #legend span.swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<div id="info">
+  <h2>Carcasa Wearable</h2>
+  <div>Exterior: <span class="dim" id="dims"></span></div>
+  <div>Layout: 2 capas (batería abajo, PCBs arriba)</div>
+  <div>Material: PETG</div>
+  <div style="margin-top:8px; font-size:11px; color:#aaa;">
+    Arrastra para rotar · Scroll para zoom · Click derecho para mover
+  </div>
+</div>
+<div id="legend">
+  <div><span class="swatch" style="background:#4a90d9;"></span> XIAO nRF52840</div>
+  <div><span class="swatch" style="background:#50c878;"></span> BNO085</div>
+  <div><span class="swatch" style="background:#f0a500;"></span> Batería 602030</div>
+  <div><span class="swatch" style="background:#888;"></span> Carcasa (base)</div>
+  <div><span class="swatch" style="background:#aab;opacity:0.6;"></span> Tapa</div>
+</div>
+<div id="controls">
+  <button id="btnExploded" class="active" onclick="toggleView('exploded')">Vista Explosionada</button>
+  <button id="btnClosed" onclick="toggleView('closed')">Vista Cerrada</button>
+  <button id="btnComponents" onclick="toggleView('components')">Solo Componentes</button>
+  <button id="btnBase" onclick="toggleView('base')">Solo Base</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ---- Component Dimensions ----
+const tol = 0.3;
+const wall = 1.6, floor_t = 1.2, ceil_t = 1.2;
+const gap = 2.5, corner_r = 3.0;
+const separator_t = 0.8;
+
+const xiao = { l: 21, w: 17.5, h: 5 };
+const bno  = { l: 25.6, w: 22.7, h: 3.5 };
+const bat  = { l: 30, w: 20, h: 6 };
+const usbc = { w: 9, h: 3.5 };
+const strap = { w: 25, t: 2.5, h: 3 };
+const post = { d: 3, h: 4 };
+
+const inner_w = Math.max(bno.w, xiao.w, bat.w) + tol * 2;
+const inner_l = bno.l + gap + xiao.l + tol * 4;
+const inner_h = bat.h + separator_t + Math.max(xiao.h, bno.h) + tol;
+
+const outer_l = inner_l + wall * 2;
+const outer_w = inner_w + wall * 2;
+const outer_h = floor_t + inner_h;
+const lid_h = ceil_t + post.h + 1;
+
+document.getElementById('dims').textContent =
+  `${outer_l.toFixed(1)} × ${outer_w.toFixed(1)} × ${(outer_h + lid_h).toFixed(1)} mm`;
+
+// ---- Positions (relative to casing origin at center-bottom) ----
+const bno_pos = {
+  x: -inner_l/2 + tol,
+  y: 0,
+  z: floor_t + bat.h + separator_t + bno.h/2
+};
+const xiao_pos = {
+  x: -inner_l/2 + tol + bno.l + tol + gap + tol,
+  y: 0,
+  z: floor_t + bat.h + separator_t + xiao.h/2
+};
+const bat_pos = {
+  x: 0,
+  y: 0,
+  z: floor_t + bat.h/2
+};
+
+// ---- Three.js Setup ----
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 500);
+camera.position.set(60, 45, 70);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0x1a1a2e);
+document.body.appendChild(renderer.domElement);
+
+// Lights
+const amb = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(amb);
+const dir1 = new THREE.DirectionalLight(0xffffff, 0.8);
+dir1.position.set(50, 80, 60);
+scene.add(dir1);
+const dir2 = new THREE.DirectionalLight(0x7ec8e3, 0.3);
+dir2.position.set(-40, 30, -50);
+scene.add(dir2);
+
+// ---- Helper: Rounded Box ----
+function createRoundedBox(w, h, d, r, color, opacity) {
+  const shape = new THREE.Shape();
+  const hw = w/2, hh = h/2;
+  r = Math.min(r, hw, hh);
+  shape.moveTo(-hw + r, -hh);
+  shape.lineTo(hw - r, -hh);
+  shape.quadraticCurveTo(hw, -hh, hw, -hh + r);
+  shape.lineTo(hw, hh - r);
+  shape.quadraticCurveTo(hw, hh, hw - r, hh);
+  shape.lineTo(-hw + r, hh);
+  shape.quadraticCurveTo(-hw, hh, -hw, hh - r);
+  shape.lineTo(-hw, -hh + r);
+  shape.quadraticCurveTo(-hw, -hh, -hw + r, -hh);
+
+  const extSettings = { depth: d, bevelEnabled: false };
+  const geo = new THREE.ExtrudeGeometry(shape, extSettings);
+  geo.translate(0, 0, -d/2);
+
+  // Rotate so extrusion is along Y (up)
+  geo.rotateX(-Math.PI/2);
+
+  const mat = new THREE.MeshPhongMaterial({
+    color, transparent: opacity < 1, opacity, side: THREE.DoubleSide
+  });
+  return new THREE.Mesh(geo, mat);
+}
+
+// ---- Build Base (simplified visual) ----
+function buildBase() {
+  const group = new THREE.Group();
+
+  // Outer shell
+  const shell = createRoundedBox(outer_l, outer_w, outer_h, corner_r, 0x666666, 0.85);
+  shell.position.y = outer_h / 2;
+  group.add(shell);
+
+  // Inner cavity (slightly darker, represents hollow)
+  const cavity = createRoundedBox(inner_l, inner_w, inner_h, corner_r - wall/2, 0x333333, 0.9);
+  cavity.position.y = floor_t + inner_h/2;
+  group.add(cavity);
+
+  // Strap slots (visual indicators)
+  const slotGeo = new THREE.BoxGeometry(strap.w, strap.h, wall + 2);
+  const slotMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+
+  const slot1 = new THREE.Mesh(slotGeo, slotMat);
+  slot1.position.set(0, outer_h/2, outer_w/2);
+  group.add(slot1);
+
+  const slot2 = new THREE.Mesh(slotGeo, slotMat);
+  slot2.position.set(0, outer_h/2, -outer_w/2);
+  group.add(slot2);
+
+  // USB-C opening
+  const usbGeo = new THREE.BoxGeometry(wall + 2, usbc.h + tol, usbc.w + tol);
+  const usbMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+  const usbSlot = new THREE.Mesh(usbGeo, usbMat);
+  usbSlot.position.set(
+    xiao_pos.x + xiao.l/2 + wall/2,
+    xiao_pos.z,
+    0
+  );
+  group.add(usbSlot);
+
+  // Guide posts
+  const postGeo = new THREE.CylinderGeometry(post.d/2, post.d/2, post.h, 16);
+  const postMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
+  const corners = [
+    [-inner_l/2 + post.d, -inner_w/2 + post.d],
+    [inner_l/2 - post.d, -inner_w/2 + post.d],
+    [-inner_l/2 + post.d, inner_w/2 - post.d],
+    [inner_l/2 - post.d, inner_w/2 - post.d]
+  ];
+  corners.forEach(([cx, cz]) => {
+    const p = new THREE.Mesh(postGeo, postMat);
+    p.position.set(cx, outer_h + post.h/2, cz);
+    group.add(p);
+  });
+
+  return group;
+}
+
+// ---- Build Lid ----
+function buildLid() {
+  const group = new THREE.Group();
+  const lid = createRoundedBox(outer_l, outer_w, lid_h, corner_r, 0x8888aa, 0.5);
+  lid.position.y = lid_h / 2;
+
+  // Lip
+  const lip = createRoundedBox(inner_l - tol*2, inner_w - tol*2, 2, corner_r - wall, 0x8888aa, 0.5);
+  lip.position.y = lid_h + 1;
+
+  group.add(lid);
+  group.add(lip);
+  return group;
+}
+
+// ---- Build Components ----
+function buildComponents() {
+  const group = new THREE.Group();
+
+  // BNO085
+  const bnoGeo = new THREE.BoxGeometry(bno.l, bno.h, bno.w);
+  const bnoMat = new THREE.MeshPhongMaterial({ color: 0x50c878, transparent: true, opacity: 0.85 });
+  const bnoMesh = new THREE.Mesh(bnoGeo, bnoMat);
+  bnoMesh.position.set(bno_pos.x + bno.l/2, bno_pos.z, 0);
+  group.add(bnoMesh);
+
+  // BNO label
+  const bnoEdge = new THREE.EdgesGeometry(bnoGeo);
+  const bnoLine = new THREE.LineSegments(bnoEdge, new THREE.LineBasicMaterial({ color: 0x2d8a4e }));
+  bnoLine.position.copy(bnoMesh.position);
+  group.add(bnoLine);
+
+  // XIAO
+  const xiaoGeo = new THREE.BoxGeometry(xiao.l, xiao.h, xiao.w);
+  const xiaoMat = new THREE.MeshPhongMaterial({ color: 0x4a90d9, transparent: true, opacity: 0.85 });
+  const xiaoMesh = new THREE.Mesh(xiaoGeo, xiaoMat);
+  xiaoMesh.position.set(xiao_pos.x + xiao.l/2, xiao_pos.z, 0);
+  group.add(xiaoMesh);
+
+  const xiaoEdge = new THREE.EdgesGeometry(xiaoGeo);
+  const xiaoLine = new THREE.LineSegments(xiaoEdge, new THREE.LineBasicMaterial({ color: 0x2a5fa0 }));
+  xiaoLine.position.copy(xiaoMesh.position);
+  group.add(xiaoLine);
+
+  // USB-C indicator
+  const usbcGeo = new THREE.BoxGeometry(2, usbc.h, usbc.w);
+  const usbcMat = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+  const usbcMesh = new THREE.Mesh(usbcGeo, usbcMat);
+  usbcMesh.position.set(xiao_pos.x + xiao.l + 1, xiao_pos.z, 0);
+  group.add(usbcMesh);
+
+  // Battery
+  const batGeo = new THREE.BoxGeometry(bat.l, bat.h, bat.w);
+  const batMat = new THREE.MeshPhongMaterial({ color: 0xf0a500, transparent: true, opacity: 0.85 });
+  const batMesh = new THREE.Mesh(batGeo, batMat);
+  batMesh.position.set(bat_pos.x, bat_pos.z, 0);
+  group.add(batMesh);
+
+  const batEdge = new THREE.EdgesGeometry(batGeo);
+  const batLine = new THREE.LineSegments(batEdge, new THREE.LineBasicMaterial({ color: 0xb07800 }));
+  batLine.position.copy(batMesh.position);
+  group.add(batLine);
+
+  // Cable channel indicator
+  const cableGeo = new THREE.BoxGeometry(gap, 2, gap);
+  const cableMat = new THREE.MeshPhongMaterial({ color: 0xff6666, transparent: true, opacity: 0.6 });
+  const cableMesh = new THREE.Mesh(cableGeo, cableMat);
+  cableMesh.position.set(
+    bno_pos.x + bno.l + gap/2 + tol,
+    bno_pos.z,
+    0
+  );
+  group.add(cableMesh);
+
+  return group;
+}
+
+// ---- Assemble Scene ----
+const baseGroup = buildBase();
+const lidGroup = buildLid();
+const compGroup = buildComponents();
+
+scene.add(baseGroup);
+scene.add(lidGroup);
+scene.add(compGroup);
+
+// Center everything
+const allGroup = new THREE.Group();
+scene.remove(baseGroup, lidGroup, compGroup);
+allGroup.add(baseGroup, lidGroup, compGroup);
+scene.add(allGroup);
+
+// ---- View modes ----
+let currentView = 'exploded';
+
+function setView(mode) {
+  const dur = 0.3;
+  switch(mode) {
+    case 'exploded':
+      lidGroup.visible = true;
+      baseGroup.visible = true;
+      compGroup.visible = true;
+      lidGroup.position.y = outer_h + post.h + 12;
+      break;
+    case 'closed':
+      lidGroup.visible = true;
+      baseGroup.visible = true;
+      compGroup.visible = true;
+      lidGroup.position.y = outer_h + post.h;
+      break;
+    case 'components':
+      lidGroup.visible = false;
+      baseGroup.visible = false;
+      compGroup.visible = true;
+      break;
+    case 'base':
+      lidGroup.visible = false;
+      baseGroup.visible = true;
+      compGroup.visible = false;
+      break;
+  }
+  currentView = mode;
+  document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+}
+
+function toggleView(mode) { setView(mode); }
+setView('exploded');
+
+// ---- Orbit Controls (manual) ----
+let isDragging = false, isPanning = false;
+let prevX, prevY;
+let rotX = 0.5, rotY = 0.3;
+let panX = 0, panY = 0;
+let dist = 110;
+
+function updateCamera() {
+  camera.position.x = dist * Math.sin(rotX) * Math.cos(rotY) + panX;
+  camera.position.y = dist * Math.sin(rotY) + panY;
+  camera.position.z = dist * Math.cos(rotX) * Math.cos(rotY);
+  camera.lookAt(panX, panY + 5, 0);
+}
+
+renderer.domElement.addEventListener('mousedown', e => {
+  if (e.button === 0) isDragging = true;
+  if (e.button === 2) isPanning = true;
+  prevX = e.clientX; prevY = e.clientY;
+});
+renderer.domElement.addEventListener('mousemove', e => {
+  if (isDragging) {
+    rotX += (e.clientX - prevX) * 0.01;
+    rotY += (e.clientY - prevY) * 0.01;
+    rotY = Math.max(-1.2, Math.min(1.2, rotY));
+    prevX = e.clientX; prevY = e.clientY;
+    updateCamera();
+  }
+  if (isPanning) {
+    panX -= (e.clientX - prevX) * 0.15;
+    panY += (e.clientY - prevY) * 0.15;
+    prevX = e.clientX; prevY = e.clientY;
+    updateCamera();
+  }
+});
+window.addEventListener('mouseup', () => { isDragging = false; isPanning = false; });
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+renderer.domElement.addEventListener('wheel', e => {
+  dist += e.deltaY * 0.08;
+  dist = Math.max(40, Math.min(250, dist));
+  updateCamera();
+});
+
+updateCamera();
+
+// ---- Animate ----
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

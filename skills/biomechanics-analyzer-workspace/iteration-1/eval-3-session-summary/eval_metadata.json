@@ -1,0 +1,6 @@
+{
+  "eval_id": 30,
+  "eval_name": "session-summary-legacy",
+  "prompt": "Legacy eval from previous session",
+  "assertions": []
+}
