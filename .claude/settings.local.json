@@ -11,7 +11,13 @@
       "Bash(sed -i '' 's/com\\\\.arc\\\\.sportmonitor\\\\.arcApp;/com.arc.sportmonitor;/g' ios/Runner.xcodeproj/project.pbxproj)",
       "Bash(plutil -lint ios/Runner/Info.plist)",
       "Bash(pod install *)",
-      "Bash(flutter test *)"
+      "Bash(flutter test *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pub.dev)",
+      "WebFetch(domain:punchthrough.com)",
+      "WebFetch(domain:taduongngoc.medium.com)",
+      "Bash(flutter pub *)"
     ]
   }
 }

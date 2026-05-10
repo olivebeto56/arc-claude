@@ -29,7 +29,7 @@
 //  PARAMETROS
 // ----------------------------------------------------------------------------
 
-PART = "both";   // "body", "lid", "both", "exploded"
+PART = "lid";   // "body", "lid", "both", "exploded"
 
 TOL       = 0.15;    // tolerancia general (antes 0.30, ahora encaje justo)
 WALL      = 1.8;
@@ -50,6 +50,13 @@ DETENT_P   = 0.5;    // protrusion del teton hacia fuera del labio (interferenci
                      // con la pared del rebaje — esto es lo que da el "clic")
 DETENT_Z_FROM_BOTTOM_OF_LIP = 0.6;  // distancia desde la cara inferior del
                                      // labio al borde inferior del teton
+
+// --- Parametros del agujero USB-C (lado +X, pegado al piso) ---
+USBC_W     = 9.0;    // ancho real del conector USB-C del XIAO
+USBC_H     = 3.5;    // alto real del conector USB-C del XIAO
+USBC_TOL   = 0.4;    // holgura extra para acceso frecuente con cable
+USBC_Z_C   = FLOOR + USBC_H/2 + 1.4;  // centro Z del agujero ~ 3 mm desde piso ext
+                                       // (pegado al piso, deja sitio para PCB)
 
 $fa = 2;
 $fs = 0.3;
@@ -150,6 +157,16 @@ module body() {
         // y hacer palanca al abrir.
         translate([0, BODY_Y/2 - 0.5, BODY_Z - LID_LIP_H/2])
             cube([10, 2, LID_LIP_H + 0.6], center = true);
+
+        // ---------- Agujero USB-C (pared +X, pegado al piso) ----------
+        // Atraviesa la pared corta del lado +X. El cubo arranca un par
+        // de mm hacia dentro de la pared para garantizar corte limpio
+        // y se extiende ~4 mm hacia fuera (depth = WALL + 4).
+        translate([BODY_X/2 - WALL - 1, 0, USBC_Z_C])
+            cube([WALL + 4,
+                  USBC_W + USBC_TOL,
+                  USBC_H + USBC_TOL],
+                 center = true);
     }
 }
 
@@ -254,3 +271,5 @@ echo(str("INNER X=", INNER_X, "  Y=", INNER_Y, "  Z=", INNER_Z));
 echo(str("Snap: tetones de ", DETENT_W, "x", DETENT_H,
         " mm con interferencia ", DETENT_P, " mm"));
 echo(str("Tolerancia labio/rebaje: ", TOL, " mm"));
+echo(str("USB-C cutout: ", USBC_W + USBC_TOL, " x ", USBC_H + USBC_TOL,
+        " mm  (lado +X, centro Z=", USBC_Z_C, " mm)"));
